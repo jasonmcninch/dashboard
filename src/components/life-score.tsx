@@ -49,6 +49,20 @@ const edgeStop = (edge: "hi" | "lo", alpha: number): React.CSSProperties => ({
   stopOpacity: `calc(var(--ls-${edge}-gain) * ${alpha})`,
 });
 
+/**
+ * The same ramps for the disc, on their own gains.
+ *
+ * The disc cannot reuse the ring's. The ring's shadow runs near-opaque because it is
+ * a hard edge a few pixels wide; spread over the disc's much broader wall the same
+ * strength floods the whole face and the disc stops reading as a shallow dish and
+ * starts reading as a hole punched through the page. The dish needs a weaker shadow
+ * and a slightly stronger highlight than the ring does.
+ */
+const discStop = (edge: "hi" | "lo", alpha: number): React.CSSProperties => ({
+  stopColor: `var(--ls-${edge}-ink)`,
+  stopOpacity: `calc(var(--ls-d${edge}-gain) * ${alpha})`,
+});
+
 /** Ticks around the bezel. 60 reads as a dense ring without turning into a blur. */
 const TICK_COUNT = 60;
 
@@ -87,6 +101,11 @@ const RING_MID = (RING_OUTER + RING_INNER) / 2;
 // How wide the lit and shadowed edges are, and how far they blur.
 const EDGE_WIDTH = 9;
 const EDGE_BLUR = 6;
+
+// The disc inside the ring. Its rim is a little wider and softer than the ring's own
+// edges: a dish's wall is read across a broader band than a hard machined edge.
+const DISC_EDGE = 13;
+const DISC_BLUR = 8;
 
 // Ticks centred on the ring at a fixed length, measured from the midpoint so
 // changing RING_THICKNESS can't stretch them.
@@ -238,17 +257,48 @@ export function LifeScore({ pct }: { pct: number | null }) {
               <path d={ring} fillRule="evenodd" />
             </clipPath>
 
-            <radialGradient
-              id="ls-well"
-              gradientUnits="userSpaceOnUse"
-              cx={CENTER}
-              cy={CENTER - 14}
-              r={RING_INNER}
+            {/* The disc behind the readout. Darker at the upper-left, lighter toward
+                the lower-right — the floor of a dish tilts away from the light on the
+                side nearest it, which is the opposite of the ring's own face. */}
+            <linearGradient id="ls-disc" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" style={{ stopColor: "var(--ls-disc-1)" }} />
+              <stop offset="0.55" style={{ stopColor: "var(--ls-disc-2)" }} />
+              <stop offset="1" style={{ stopColor: "var(--ls-disc-3)" }} />
+            </linearGradient>
+
+            {/* The same two ramps as the ring, run in the opposite direction.
+                A recess is not a raised form with different colours — it's the same
+                lighting read backwards: the wall nearest the light is the one turned
+                AWAY from it and falls into shadow, while the far wall catches it.
+                Reversing the gradient axis is enough; the stops don't change. */}
+            <linearGradient id="ls-hi-rev" x1="1.1" y1="1.1" x2="-0.15" y2="-0.15">
+              {HIGHLIGHT_RAMP.map(([offset, alpha]) => (
+                <stop key={offset} offset={offset} style={discStop("hi", alpha)} />
+              ))}
+            </linearGradient>
+
+            <linearGradient id="ls-lo-rev" x1="1.1" y1="1.1" x2="-0.15" y2="-0.15">
+              {SHADOW_RAMP.map(([offset, alpha]) => (
+                <stop key={offset} offset={offset} style={discStop("lo", alpha)} />
+              ))}
+            </linearGradient>
+
+            {/* Holds the disc's rim strokes inside the disc, so they read as an inner
+                wall rather than a halo around it. */}
+            <clipPath id="ls-disc-clip">
+              <circle cx={CENTER} cy={CENTER} r={RING_INNER} />
+            </clipPath>
+
+            <filter
+              id="ls-disc-soft"
+              x="-25%"
+              y="-25%"
+              width="150%"
+              height="150%"
+              colorInterpolationFilters="sRGB"
             >
-              <stop offset="0" style={{ stopColor: "var(--ls-well-1)" }} />
-              <stop offset="0.72" style={{ stopColor: "var(--ls-well-2)" }} />
-              <stop offset="1" style={{ stopColor: "var(--ls-well-3)" }} />
-            </radialGradient>
+              <feGaussianBlur stdDeviation={DISC_BLUR} />
+            </filter>
           </defs>
 
           {/* Face */}
@@ -296,8 +346,31 @@ export function LifeScore({ pct }: { pct: number | null }) {
             />
           </g>
 
-          {/* A whisper inside the hole so the readout isn't on a flat void. */}
-          <circle cx={CENTER} cy={CENTER} r={RING_INNER} fill="url(#ls-well)" />
+          {/* The disc the readout sits on: filled, and pressed into the page.
+              Exactly RING_INNER, so it meets the ring's inner wall with no gap. */}
+          <circle cx={CENTER} cy={CENTER} r={RING_INNER} fill="url(#ls-disc)" />
+          <g clipPath="url(#ls-disc-clip)" filter="url(#ls-disc-soft)">
+            {/* Shadow on the upper-left inner wall, highlight on the lower-right.
+                Both reversed relative to the ring's outer edge — that inversion is the
+                whole difference between something sunk into the page and something
+                rising out of it. */}
+            <circle
+              cx={CENTER}
+              cy={CENTER}
+              r={RING_INNER - DISC_EDGE / 2}
+              fill="none"
+              stroke="url(#ls-lo-rev)"
+              strokeWidth={DISC_EDGE}
+            />
+            <circle
+              cx={CENTER}
+              cy={CENTER}
+              r={RING_INNER - DISC_EDGE / 2}
+              fill="none"
+              stroke="url(#ls-hi-rev)"
+              strokeWidth={DISC_EDGE}
+            />
+          </g>
 
           {/* Ticks — the only crisp element. Animated on load. */}
           <AnimatedRingTicks ticks={ticks} />

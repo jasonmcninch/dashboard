@@ -162,9 +162,15 @@
   --ls-hi-gain: 1;
   --ls-lo-ink: #000000;
   --ls-lo-gain: 1;
-  --ls-well-1: #0e0e0e;
-  --ls-well-2: #0b0b0b;
-  --ls-well-3: #0a0a0a;
+  /* The disc behind the readout, pressed into the page. Reads DARKER than the page
+     at the upper-left where the dish floor turns away from the light, easing back
+     toward it at the lower-right. */
+  --ls-disc-1: #080808;
+  --ls-disc-2: #0c0c0c;
+  --ls-disc-3: #121212;
+  /* Weaker shadow, stronger highlight than the ring. See discStop(). */
+  --ls-dlo-gain: 0.42;
+  --ls-dhi-gain: 1.3;
   --ls-tick-lit: rgba(255, 255, 255, 0.85);
   --ls-tick-dim: rgba(255, 255, 255, 0.06);
   --ls-bead: #ededed;
@@ -222,11 +228,14 @@
   --ls-hi-gain: 2.4;
   --ls-lo-ink: #000000;
   --ls-lo-gain: 0.26;
-  /* The hole is a recess, so its centre is DARKER than the page here, where in dark
-     mode it was lighter. Same physics, opposite sign. */
-  --ls-well-1: #e6e6ec;
-  --ls-well-2: #ececf0;
-  --ls-well-3: #f2f2f5;
+  /* Same read on a light page: the far side of the dish is nearly the page colour,
+     the near side sits below it. The swing is smaller than in dark mode because a
+     light surface shows a shallow shadow far more readily. */
+  --ls-disc-1: #e7e7ee;
+  --ls-disc-2: #eeeef3;
+  --ls-disc-3: #f4f4f7;
+  --ls-dlo-gain: 0.30;
+  --ls-dhi-gain: 2.2;
   --ls-tick-lit: rgba(0, 0, 0, 0.72);
   --ls-tick-dim: rgba(0, 0, 0, 0.10);
   --ls-bead: #2b2b31;
