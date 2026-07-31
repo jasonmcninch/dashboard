@@ -4,6 +4,9 @@ import { useState, useTransition } from "react";
 import { CircleCheck } from "@/components/circle-check";
 import { GoalField } from "@/components/goal-field";
 import type { Wellness } from "@/lib/data/types";
+// Imported from the submodule, not the barrel: ./index pulls in the JSON store and
+// would drag node:fs/promises into the browser bundle.
+import { pctOfCounted } from "@/lib/wellness/schedule";
 
 const CORAL = "#E8624A";
 
@@ -26,13 +29,7 @@ export function WellnessChecklist({ initial }: { initial: Wellness }) {
     const days = wellness.days.map((d) =>
       d.day === day ? { ...d, done: next } : d,
     );
-    setWellness({
-      ...wellness,
-      days,
-      completedPct: Math.round(
-        (days.filter((d) => d.done).length / days.length) * 100,
-      ),
-    });
+    setWellness({ ...wellness, days, completedPct: pctOfCounted(days) });
     setError(null);
 
     try {

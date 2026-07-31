@@ -1,5 +1,11 @@
 import type { Wellness } from "../data/types";
-import { isoWeekKey, SCHEDULE, todayKey } from "./schedule";
+import {
+  elapsedDays,
+  isoWeekKey,
+  pctOfCounted,
+  SCHEDULE,
+  todayKey,
+} from "./schedule";
 import { getGoals, getWeek } from "./store";
 
 export * from "./schedule";
@@ -11,6 +17,7 @@ export async function getWellness(): Promise<Wellness> {
   const week = isoWeekKey();
   const [stored, goals] = await Promise.all([getWeek(week), getGoals()]);
   const today = todayKey();
+  const elapsed = new Set(elapsedDays());
 
   const days = SCHEDULE.map((entry) => ({
     day: entry.day,
@@ -18,16 +25,9 @@ export async function getWellness(): Promise<Wellness> {
     kind: entry.kind,
     done: stored[entry.day] === true,
     isToday: entry.day === today,
+    counted: elapsed.has(entry.day),
     goal: goals[entry.day] ?? "",
   }));
 
-  const completed = days.filter((day) => day.done).length;
-
-  return {
-    week,
-    days,
-    completedPct: days.length
-      ? Math.round((completed / days.length) * 100)
-      : 0,
-  };
+  return { week, days, completedPct: pctOfCounted(days) };
 }

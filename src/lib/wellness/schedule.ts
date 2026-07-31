@@ -29,3 +29,36 @@ export function todayKey(date = new Date()): DayKey | null {
   const index = (date.getDay() + 6) % 7; // Mon=0 … Sun=6
   return index < SCHEDULE.length ? SCHEDULE[index].day : null;
 }
+
+/**
+ * The scheduled days that have already arrived this week: Monday through today.
+ *
+ * Only these count toward the percentage. The week reads 100% when everything up
+ * to today is ticked — on Wednesday, Saturday's bike ride is not yet a miss, so
+ * counting it would mean the score could never be full until the weekend. Sunday
+ * sits past Saturday, so by then the whole plan has elapsed and the week is scored
+ * in full.
+ */
+export function elapsedDays(date = new Date()): DayKey[] {
+  const index = (date.getDay() + 6) % 7; // Mon=0 … Sun=6
+  return DAY_KEYS.slice(0, Math.min(index + 1, DAY_KEYS.length));
+}
+
+/**
+ * Completed ÷ elapsed, as a percentage.
+ *
+ * Reads `counted` rather than recomputing which days have elapsed, so the client's
+ * optimistic recount after a toggle can't disagree with the server's number over a
+ * clock difference. Days still ahead are excluded from *both* halves of the
+ * fraction: ticking Friday on a Wednesday doesn't move the score until Friday
+ * arrives, which also stops early ticks pushing it past 100%.
+ */
+export function pctOfCounted(
+  days: { done: boolean; counted: boolean }[],
+): number {
+  const counted = days.filter((day) => day.counted);
+  if (!counted.length) return 0; // Monday always counts, so this is belt-and-braces.
+  return Math.round(
+    (counted.filter((day) => day.done).length / counted.length) * 100,
+  );
+}

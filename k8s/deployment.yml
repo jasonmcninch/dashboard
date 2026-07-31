@@ -65,6 +65,19 @@ spec:
             # the container.
             - name: CHECKLIST_DATA_DIR
               value: /data
+            # Every reset boundary — the daily spiritual and diet keys, the weekly
+            # wellness and Life Score keys — is computed from the server's LOCAL
+            # time. A container defaults to UTC, which put the rollover at 6pm
+            # Mountain: anything ticked after 6pm was filed under tomorrow, and
+            # tomorrow morning today's entries had "reset". Naming the zone moves
+            # the boundary to real local midnight.
+            #
+            # America/Denver, not a fixed-offset MST: the IANA zone tracks DST, so
+            # midnight stays midnight through both halves of the year. Node resolves
+            # this from its bundled ICU data, so the Alpine image needs no tzdata
+            # package — verified inside the running container.
+            - name: TZ
+              value: America/Denver
           volumeMounts:
             - name: data
               mountPath: /data

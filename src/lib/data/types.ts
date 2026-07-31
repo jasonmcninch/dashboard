@@ -95,6 +95,12 @@ export type WellnessDay = {
   /** True for the row matching today, so the UI can highlight it. */
   isToday: boolean;
   /**
+   * Whether this day counts toward the percentage — true from Monday through today,
+   * false for days still ahead this week. The server decides so that the client's
+   * optimistic recount lands on the same number.
+   */
+  counted: boolean;
+  /**
    * Standing goal for this weekday. Persists until changed rather than clearing with
    * the weekly checkbox, so Monday's goal is still there next Monday.
    */
@@ -105,7 +111,7 @@ export type Wellness = {
   /** ISO week the checklist currently covers, e.g. "2026-W31". */
   week: string;
   days: WellnessDay[];
-  /** Completed days ÷ scheduled days, as a percentage. */
+  /** Completed days ÷ days elapsed so far this week, as a percentage. */
   completedPct: number;
 };
 
