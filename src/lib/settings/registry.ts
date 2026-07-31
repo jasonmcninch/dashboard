@@ -39,11 +39,6 @@ export const LABEL_DEFAULTS = {
   "panel.email": "Clean & Up To Date",
   "panel.reminders": "Reminders & Promptings",
 
-  // ── The dial ────────────────────────────────────────────────────────────────
-  // Two keys rather than one with a newline: the dial breaks the label across two
-  // lines by design, and a stored "\n" is invisible in a text field.
-  "dial.line1": "Life Score",
-  "dial.line2": "This Week",
 
   // ── Wellness ────────────────────────────────────────────────────────────────
   "wellness.mon.label": "Monday",
@@ -104,12 +99,6 @@ export const LABEL_GROUPS: {
   hint?: string;
   keys: LabelKey[];
 }[] = [
-  {
-    id: "dial",
-    title: "Life Score dial",
-    hint: "The two lines under the big number.",
-    keys: ["dial.line1", "dial.line2"],
-  },
   {
     id: "summary",
     title: "Summary row",
@@ -219,8 +208,6 @@ export const LABEL_GROUPS: {
  * shipped default, which is usually the clearest description of the field there is.
  */
 export const FIELD_NAMES: Partial<Record<LabelKey, string>> = {
-  "dial.line1": "First line",
-  "dial.line2": "Second line",
   "family.date.placeholder": "Date note placeholder",
   "family.leadership.subtext": "Leadership subtext",
   "wellness.mon.kind": "Monday activity",

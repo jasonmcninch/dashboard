@@ -453,17 +453,26 @@ export default async function DashboardPage() {
         </span>
         <div className="flex items-center gap-1">
           <ThemeToggle />
-          <Link href="/dashboard/settings" className="nav-icon" aria-label="Settings">
+          <Link
+            href="/dashboard/settings"
+            className="nav-icon"
+            aria-label="Preferences"
+          >
             <SectionIcon>
-              {/* Gear: a hub, a rim, and eight teeth STRADDLING the rim.
-                  Radial strokes sitting entirely outside the circle read as a sun, not
-                  a cog — the teeth have to cross the boundary they belong to. Drawn as
-                  short strokes rather than a true involute profile, which collapses
-                  into a grey blur at this size. */}
-              <circle cx="12" cy="12" r="3.1" />
-              <circle cx="12" cy="12" r="7.9" />
-              <path d="M12 2.7v2.8M12 21.3v-2.8M21.3 12h-2.8M2.7 12h2.8" />
-              <path d="M18.6 5.4l-1.98 1.98M5.4 18.6l1.98-1.98M18.6 18.6l-1.98-1.98M5.4 5.4l1.98 1.98" />
+              {/* Three faders, each with its knob at a different position — the
+                  conventional "preferences" glyph, and a better fit than a gear for a
+                  screen that is entirely adjustable values.
+
+                  Each rail is drawn as two segments with a gap where its knob sits,
+                  rather than one rail with a circle on top. A continuous line through
+                  the middle of a small circle reads as a bead threaded onto a wire; a
+                  gap reads as a knob riding a track. */}
+              <path d="M3 6h9.6M17.4 6H21" />
+              <circle cx="15" cy="6" r="2.4" />
+              <path d="M3 12h3.1M10.9 12H21" />
+              <circle cx="8.5" cy="12" r="2.4" />
+              <path d="M3 18h10.6M18.4 18H21" />
+              <circle cx="16" cy="18" r="2.4" />
             </SectionIcon>
           </Link>
           {/* The two icons sit tight together — each already carries 36px of tap
@@ -497,12 +506,7 @@ export default async function DashboardPage() {
           reminders={reminders}
         />
 
-        <LifeScoreModal
-          pct={weekScore}
-          weeks={lifeHistory.weeks}
-          dialLine1={labels["dial.line1"]}
-          dialLine2={labels["dial.line2"]}
-        />
+        <LifeScoreModal pct={weekScore} weeks={lifeHistory.weeks} />
 
         {/* ── Summary ──
             Every section's headline number in one row, so the whole day reads at a
