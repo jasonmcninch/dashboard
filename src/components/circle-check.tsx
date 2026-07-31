@@ -8,8 +8,10 @@ import { knock } from "@/lib/haptics";
 // and a deep desaturated version for the off state.
 const CORAL_DOME =
   "linear-gradient(145deg, #FFA592 0%, #F2795F 38%, #DB5A41 70%, #A93D2A 100%)";
-const CORAL_DISH =
-  "linear-gradient(145deg, #3A1A13 0%, #4A2219 55%, #5A2A1F 100%)";
+// Themed, unlike the dome: a raised coral button reads correctly on either
+// background, but a RECESS is relative to the surface around it, and how dark it has
+// to go to read as sunken depends entirely on how light that surface is.
+const CORAL_DISH = "var(--cc-dish)";
 
 /**
  * The `switch` attribute, iOS 17.4+.
@@ -62,9 +64,11 @@ function Ring({ checked }: { checked: boolean }) {
       className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
       // The socket: a shallow recess the button sits in, constant across states.
       style={{
-        background: "linear-gradient(145deg, #0e0e0e 0%, #1a1a1a 100%)",
-        boxShadow:
-          "inset 0 1px 2px rgba(0,0,0,0.9), inset 0 -1px 1px rgba(255,255,255,0.06)",
+        // Themed: the socket is a recess in the page surface, so it has to follow
+        // the page. The coral dome and dish above do NOT — the accent is the same
+        // material in both themes, and it reads correctly against either.
+        background: "var(--c-socket)",
+        boxShadow: "var(--c-socket-shadow)",
         padding: 3,
       }}
       // A small squash on press makes the state change feel mechanical.
@@ -74,12 +78,17 @@ function Ring({ checked }: { checked: boolean }) {
       <motion.span
         className="h-full w-full rounded-full"
         initial={false}
+        // `background` is a plain style, NOT an animation target. Framer-motion
+        // cannot parse `var(...)` as a target and silently renders nothing — which
+        // made the checked state a blank grey hole once the dish became a theme
+        // token. Nothing is lost by moving it: two gradients have no interpolable
+        // midpoint, so this was always a discrete swap.
+        style={{ background: checked ? CORAL_DISH : CORAL_DOME }}
         animate={
           checked
             ? {
                 // Pressed in. Shadow along the top inside edge with a faint lift at
                 // the bottom is what reads as a depression.
-                background: CORAL_DISH,
                 boxShadow:
                   "inset 0 3px 5px rgba(0,0,0,0.80), inset 0 -1.5px 2px rgba(255,255,255,0.10), 0 1px 0 rgba(255,255,255,0.04)",
               }
@@ -87,7 +96,6 @@ function Ring({ checked }: { checked: boolean }) {
                 // Raised. A stronger top highlight and a deeper shadow beneath the
                 // inside edge exaggerate the curvature, so it sits more proud of the
                 // socket than a subtler bevel would.
-                background: CORAL_DOME,
                 boxShadow: [
                   "0 3px 7px rgba(0,0,0,0.62)",
                   "inset 0 2px 1.5px rgba(255,255,255,0.62)",

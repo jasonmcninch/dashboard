@@ -129,8 +129,8 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
+    // Theme comes from the root element, set before paint by the layout's script.
     <div
-      data-theme="dark"
       className="flex min-h-screen items-center justify-center px-6"
       style={{
         background: "var(--c-bg)",

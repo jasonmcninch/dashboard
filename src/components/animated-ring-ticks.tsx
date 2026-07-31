@@ -95,8 +95,8 @@ export function AnimatedBead({
       cx={cx}
       cy={cy}
       r={5.5}
-      fill="#ededed"
-      style={{ filter: "drop-shadow(0 0 8px rgba(255,255,255,0.4))" }}
+      fill="var(--ls-bead)"
+      style={{ filter: "drop-shadow(0 0 8px var(--ls-bead-glow))" }}
       initial={reduceMotion ? undefined : { opacity: 0, scale: 0.3 }}
       animate={reduceMotion ? undefined : { opacity: 1, scale: 1 }}
       transition={{

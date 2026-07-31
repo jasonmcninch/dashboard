@@ -104,9 +104,9 @@ export function DietPanel({ initial }: { initial: DietState }) {
       <div
         className="rounded-full px-2.5 py-1"
         style={{
-          background: "linear-gradient(180deg, #1c1c1c 0%, #101010 100%)",
+          background: "var(--c-rail)",
           boxShadow:
-            "0 1px 0 rgba(255,255,255,0.05), 0 3px 8px rgba(0,0,0,0.55), inset 0 -1px 1px rgba(0,0,0,0.6)",
+            "var(--c-rail-shadow)",
         }}
       >
         <input

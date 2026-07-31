@@ -99,7 +99,7 @@ export function LifeScoreModal({
               aria-label="Close"
               onClick={() => setOpen(false)}
               className="absolute inset-0 cursor-default border-0 p-0"
-              style={{ background: "rgba(0,0,0,0.72)", backdropFilter: "blur(3px)" }}
+              style={{ background: "var(--c-scrim)", backdropFilter: "blur(3px)" }}
             />
 
             <motion.div
@@ -195,8 +195,8 @@ export function LifeScoreModal({
                           background: isCurrent
                             ? `linear-gradient(180deg, #F2795F 0%, ${CORAL} 100%)`
                             : recorded
-                              ? "rgba(255,255,255,0.16)"
-                              : "rgba(255,255,255,0.06)",
+                              ? "var(--c-bar-track)"
+                              : "var(--c-bar-track-dim)",
                         }}
                       />
                       <span

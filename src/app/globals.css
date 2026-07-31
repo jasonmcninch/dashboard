@@ -144,6 +144,50 @@
   --c-shadow: 0 8px 32px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   --c-shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.06);
   --c-blur: blur(14px);
+
+  /* Life Score dial.
+     These live here rather than in the component so the dial can stay a server
+     component: it has no way to know the theme, but CSS custom properties are
+     resolved at paint time, so the same markup renders correctly in both.
+
+     The two `gain` values scale the edge ramps rather than restating all fourteen
+     stops per theme — the ramp SHAPE is a property of the form and doesn't change,
+     only how hard the light and shadow have to be pushed. On near-black, the shadow
+     side has almost nowhere to darken to, so both run at full strength. */
+  --ls-face-1: #161616;
+  --ls-face-2: #131313;
+  --ls-face-3: #0f0f0f;
+  --ls-face-4: #0c0c0c;
+  --ls-hi-ink: #ffffff;
+  --ls-hi-gain: 1;
+  --ls-lo-ink: #000000;
+  --ls-lo-gain: 1;
+  --ls-well-1: #0e0e0e;
+  --ls-well-2: #0b0b0b;
+  --ls-well-3: #0a0a0a;
+  --ls-tick-lit: rgba(255, 255, 255, 0.85);
+  --ls-tick-dim: rgba(255, 255, 255, 0.06);
+  --ls-bead: #ededed;
+  --ls-bead-glow: rgba(255, 255, 255, 0.4);
+
+  /* Recessed sockets and grooves: the checkbox socket, the slider track. */
+  --c-socket: linear-gradient(145deg, #0e0e0e 0%, #1a1a1a 100%);
+  /* The checked checkbox: coral pressed into its socket. Nearly black-brown here
+     because on a #0a0a0a page a recess has to go very dark to read as one. */
+  --cc-dish: linear-gradient(145deg, #3a1a13 0%, #4a2219 55%, #5a2a1f 100%);
+  --c-socket-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.9),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.06);
+  --c-groove: linear-gradient(180deg, #0b0b0b 0%, #141414 100%);
+  --c-groove-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.9),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.05);
+  --c-rail: linear-gradient(180deg, #1c1c1c 0%, #101010 100%);
+  --c-rail-shadow: 0 1px 0 rgba(255, 255, 255, 0.05), 0 3px 8px rgba(0, 0, 0, 0.55),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.6);
+  --c-scrim: rgba(0, 0, 0, 0.72);
+  --c-bar-track: rgba(255, 255, 255, 0.16);
+  --c-bar-track-dim: rgba(255, 255, 255, 0.06);
+  --c-toggle-bg: #2a2a2a;
+  --c-toggle-knob: #ffffff;
 }
 
 [data-theme="light"] {
@@ -160,10 +204,103 @@
   --c-shadow: 0 8px 32px rgba(0, 0, 0, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.95);
   --c-shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.85);
   --c-blur: blur(14px);
+
+  /* Life Score dial, light.
+     The face sits just off the page colour in the same way the dark one sits just
+     off black — an emboss reads from its edges, not from being a lighter object on
+     the background, and that principle doesn't invert with the theme.
+
+     What DOES change is the balance between the two edges. On near-black the shadow
+     has nowhere to go and the highlight carries the read; on a light surface it's the
+     reverse — black has all the room it needs, so the shadow gain drops hard and the
+     highlight is pushed up to stay visible against a nearly-white face. */
+  --ls-face-1: #f8f8fb;
+  --ls-face-2: #f4f4f8;
+  --ls-face-3: #ededf2;
+  --ls-face-4: #e7e7ee;
+  --ls-hi-ink: #ffffff;
+  --ls-hi-gain: 2.4;
+  --ls-lo-ink: #000000;
+  --ls-lo-gain: 0.26;
+  /* The hole is a recess, so its centre is DARKER than the page here, where in dark
+     mode it was lighter. Same physics, opposite sign. */
+  --ls-well-1: #e6e6ec;
+  --ls-well-2: #ececf0;
+  --ls-well-3: #f2f2f5;
+  --ls-tick-lit: rgba(0, 0, 0, 0.72);
+  --ls-tick-dim: rgba(0, 0, 0, 0.10);
+  --ls-bead: #2b2b31;
+  --ls-bead-glow: rgba(0, 0, 0, 0.22);
+
+  --c-socket: linear-gradient(145deg, #e2e2e9 0%, #f2f2f6 100%);
+  /* Still unmistakably the accent, just seated below the surface. The dark theme's
+     near-black brown would read as a smudge against a white card rather than as
+     coral in shadow. */
+  --cc-dish: linear-gradient(145deg, #a63b26 0%, #be4a33 55%, #d25c45 100%);
+  --c-socket-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.16),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.9);
+  --c-groove: linear-gradient(180deg, #e0e0e7 0%, #f0f0f4 100%);
+  --c-groove-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.18),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.9);
+  --c-rail: linear-gradient(180deg, #ffffff 0%, #eeeef3 100%);
+  --c-rail-shadow: 0 1px 0 rgba(255, 255, 255, 0.9), 0 3px 8px rgba(0, 0, 0, 0.10),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.06);
+  --c-scrim: rgba(120, 120, 130, 0.45);
+  --c-bar-track: rgba(0, 0, 0, 0.16);
+  --c-bar-track-dim: rgba(0, 0, 0, 0.07);
+  --c-toggle-bg: #e0e0e0;
+  --c-toggle-knob: #111111;
 }
 
 input::placeholder {
   color: var(--c-text-faint);
+}
+
+/* ── Theme toggle ──────────────────────────────────────────────────────────
+   The knob's position and both colours come from CSS keyed on the root's
+   `data-theme`, not from React state. That's deliberate: the theme is restored from
+   localStorage by an inline script before first paint, so any component holding it
+   in state would render "dark" on the server, hydrate against a root that already
+   says "light", and log a mismatch. With the attribute as the single source of
+   truth, the markup is identical in both themes and only the paint differs. */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  width: 46px;
+  height: 24px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--c-toggle-bg);
+  transition: background-color 0.25s ease;
+  cursor: pointer;
+  flex: none;
+}
+
+.theme-toggle > .theme-knob {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--c-toggle-knob);
+  /* Springy rather than linear, to match the pill on the landing page. */
+  transition:
+    transform 0.28s cubic-bezier(0.34, 1.4, 0.64, 1),
+    background-color 0.25s ease;
+}
+
+[data-theme="light"] .theme-toggle > .theme-knob {
+  transform: translateX(22px);
+}
+
+.theme-toggle:focus-visible {
+  outline: 2px solid #e8624a;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-toggle,
+  .theme-toggle > .theme-knob {
+    transition: none;
+  }
 }
 
 /* ── In-page navigation ────────────────────────────────────────────────────
@@ -211,6 +348,31 @@ html {
     3px 4px 8px rgba(0, 0, 0, 0.5),
     /* Rim, standing in for a border. */ inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.16),
     inset -1.5px -2.5px 4px rgba(0, 0, 0, 0.6);
+}
+
+/* The same panel in light mode.
+   Not a recolouring of the dark values — the ratio between highlight and shadow
+   inverts. On black the outer white highlight does the work at 8.5% and the shadow
+   is nearly opaque; on a light surface the white highlight has to run near 90% to
+   register at all while the shadow drops to a tenth of its dark strength. Reusing
+   the dark opacities here would produce a panel ringed in grey smudge. */
+[data-theme="light"] .neu-box {
+  background: linear-gradient(145deg, #ffffff 0%, #fafafc 32%, #f1f1f6 64%, #e8e8ef 100%);
+  box-shadow:
+    -6px -6px 16px rgba(255, 255, 255, 0.9),
+    -2px -2px 5px rgba(255, 255, 255, 0.75),
+    7px 9px 20px rgba(0, 0, 0, 0.1),
+    3px 4px 8px rgba(0, 0, 0, 0.07),
+    inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.95),
+    inset -1.5px -2.5px 4px rgba(0, 0, 0, 0.055);
+}
+
+[data-theme="light"] .neu-box.neu-press:active {
+  box-shadow:
+    -2px -2px 6px rgba(255, 255, 255, 0.6),
+    3px 4px 9px rgba(0, 0, 0, 0.08),
+    inset 1.5px 2px 4px rgba(0, 0, 0, 0.12),
+    inset -1px -1px 2px rgba(255, 255, 255, 0.8);
 }
 
 /* A press, so a tappable box acknowledges the tap by sinking slightly. */
@@ -304,10 +466,8 @@ input[type="range"].detent-slider::-webkit-slider-runnable-track {
         transparent var(--fill, 0%)
       )
       no-repeat,
-    linear-gradient(180deg, #0b0b0b 0%, #141414 100%);
-  box-shadow:
-    inset 0 2px 5px rgba(0, 0, 0, 0.9),
-    inset 0 -1px 1px rgba(255, 255, 255, 0.05);
+    var(--c-groove);
+  box-shadow: var(--c-groove-shadow);
 }
 
 input[type="range"].detent-slider::-moz-range-track {
@@ -325,10 +485,8 @@ input[type="range"].detent-slider::-moz-range-track {
         transparent var(--fill, 0%)
       )
       no-repeat,
-    linear-gradient(180deg, #0b0b0b 0%, #141414 100%);
-  box-shadow:
-    inset 0 2px 5px rgba(0, 0, 0, 0.9),
-    inset 0 -1px 1px rgba(255, 255, 255, 0.05);
+    var(--c-groove);
+  box-shadow: var(--c-groove-shadow);
 }
 
 /* The handle: a coral pill taller than the groove, with grip ridges.

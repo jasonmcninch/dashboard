@@ -1,3 +1,4 @@
+import { ThemeToggle } from "@/components/theme-toggle";
 import { DietPanel } from "@/components/diet-panel";
 import { LifeScoreModal } from "@/components/life-score-modal";
 import { ProgressRing } from "@/components/progress-ring";
@@ -427,8 +428,9 @@ export default async function DashboardPage() {
   const weekScore = lifeHistory.weeks[0]?.score ?? lifeScore;
 
   return (
+    // No data-theme here: it lives on the root element so one attribute themes the
+    // whole document, and the toggle in the nav flips it.
     <div
-      data-theme="dark"
       className="min-h-screen"
       style={{
         background: "var(--c-bg)",
@@ -444,7 +446,8 @@ export default async function DashboardPage() {
         <span className="text-sm font-bold tracking-widest" style={{ color: CORAL }}>
           mcninch.live
         </span>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
           <span className="text-[11px]" style={{ color: "var(--c-text-dim)" }}>
             {session?.sub}
           </span>

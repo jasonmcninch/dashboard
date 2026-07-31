@@ -1,7 +1,53 @@
 import { AnimatedBead, AnimatedRingTicks } from "@/components/animated-ring-ticks";
 
 const CORAL = "#E8624A";
-const PAGE = "#0a0a0a";
+
+// The dial's palette lives in globals.css as custom properties, keyed on the root's
+// data-theme. This component stays a server component and has no way to know the
+// theme; custom properties resolve at paint time, so one set of markup renders
+// correctly in both. See the --ls-* block there.
+const FACE_STOPS = [
+  { offset: 0, token: "--ls-face-1" },
+  { offset: 0.35, token: "--ls-face-2" },
+  { offset: 0.68, token: "--ls-face-3" },
+  { offset: 1, token: "--ls-face-4" },
+] as const;
+
+/**
+ * The edge ramps, as [offset, alpha] pairs.
+ *
+ * Only the alphas live here; the ink and an overall gain come from the theme. The
+ * ramp's SHAPE describes the form — how quickly the lit edge falls off around the
+ * circumference — and that's a property of the geometry, not of the palette. What
+ * genuinely differs between themes is how hard each edge has to be pushed, which is
+ * one multiplier rather than fourteen restated stops.
+ */
+const HIGHLIGHT_RAMP = [
+  [0, 0.3],
+  [0.12, 0.25],
+  [0.24, 0.18],
+  [0.36, 0.11],
+  [0.48, 0.05],
+  [0.6, 0.015],
+  [0.72, 0],
+] as const;
+
+const SHADOW_RAMP = [
+  [0.26, 0],
+  [0.4, 0.1],
+  [0.52, 0.26],
+  [0.64, 0.44],
+  [0.76, 0.62],
+  [0.88, 0.78],
+  [1, 0.9],
+] as const;
+
+/** One gradient stop on a themed edge ramp. */
+const edgeStop = (edge: "hi" | "lo", alpha: number): React.CSSProperties => ({
+  stopColor: `var(--ls-${edge}-ink)`,
+  // calc() in stop-opacity is what lets a single theme variable scale the whole ramp.
+  stopOpacity: `calc(var(--ls-${edge}-gain) * ${alpha})`,
+});
 
 /** Ticks around the bezel. 60 reads as a dense ring without turning into a blur. */
 const TICK_COUNT = 60;
@@ -105,8 +151,8 @@ export function LifeScore({ pct }: { pct: number | null }) {
       x2: q(CENTER + Math.cos(angle) * TICK_OUTER),
       y2: q(CENTER + Math.sin(angle) * TICK_OUTER),
       lit,
-      litStroke: "rgba(255,255,255,0.85)",
-      dimStroke: "rgba(255,255,255,0.06)",
+      litStroke: "var(--ls-tick-lit)",
+      dimStroke: "var(--ls-tick-dim)",
       width: isMajor ? 2.4 : 1.5,
     };
   });
@@ -150,35 +196,26 @@ export function LifeScore({ pct }: { pct: number | null }) {
                 lighter object sitting on the background, only as the same surface
                 deformed. */}
             <linearGradient id="ls-face" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stopColor="#161616" />
-              <stop offset="0.35" stopColor="#131313" />
-              <stop offset="0.68" stopColor="#0f0f0f" />
-              <stop offset="1" stopColor="#0c0c0c" />
+              {FACE_STOPS.map(({ offset, token }) => (
+                <stop key={token} offset={offset} style={{ stopColor: `var(${token})` }} />
+              ))}
             </linearGradient>
 
             {/* Highlight, present only on the upper-left half of whatever it strokes.
                 The axis runs past the corners so the fade is gradual rather than
                 completing inside the visible arc. */}
             <linearGradient id="ls-hi" x1="-0.15" y1="-0.15" x2="1.1" y2="1.1">
-              <stop offset="0" stopColor="#ffffff" stopOpacity="0.30" />
-              <stop offset="0.12" stopColor="#ffffff" stopOpacity="0.25" />
-              <stop offset="0.24" stopColor="#ffffff" stopOpacity="0.18" />
-              <stop offset="0.36" stopColor="#ffffff" stopOpacity="0.11" />
-              <stop offset="0.48" stopColor="#ffffff" stopOpacity="0.05" />
-              <stop offset="0.60" stopColor="#ffffff" stopOpacity="0.015" />
-              <stop offset="0.72" stopColor="#ffffff" stopOpacity="0" />
+              {HIGHLIGHT_RAMP.map(([offset, alpha]) => (
+                <stop key={offset} offset={offset} style={edgeStop("hi", alpha)} />
+              ))}
             </linearGradient>
 
             {/* Shadow, mirrored onto the lower-right half. Pushed near full opacity
                 because #0a0a0a has so little room left to darken. */}
             <linearGradient id="ls-lo" x1="-0.15" y1="-0.15" x2="1.1" y2="1.1">
-              <stop offset="0.26" stopColor="#000000" stopOpacity="0" />
-              <stop offset="0.40" stopColor="#000000" stopOpacity="0.10" />
-              <stop offset="0.52" stopColor="#000000" stopOpacity="0.26" />
-              <stop offset="0.64" stopColor="#000000" stopOpacity="0.44" />
-              <stop offset="0.76" stopColor="#000000" stopOpacity="0.62" />
-              <stop offset="0.88" stopColor="#000000" stopOpacity="0.78" />
-              <stop offset="1" stopColor="#000000" stopOpacity="0.9" />
+              {SHADOW_RAMP.map(([offset, alpha]) => (
+                <stop key={offset} offset={offset} style={edgeStop("lo", alpha)} />
+              ))}
             </linearGradient>
 
             {/* Softens the edge strokes. Applied per-stroke rather than to the whole
@@ -208,9 +245,9 @@ export function LifeScore({ pct }: { pct: number | null }) {
               cy={CENTER - 14}
               r={RING_INNER}
             >
-              <stop offset="0" stopColor="#0e0e0e" />
-              <stop offset="0.72" stopColor="#0b0b0b" />
-              <stop offset="1" stopColor={PAGE} />
+              <stop offset="0" style={{ stopColor: "var(--ls-well-1)" }} />
+              <stop offset="0.72" style={{ stopColor: "var(--ls-well-2)" }} />
+              <stop offset="1" style={{ stopColor: "var(--ls-well-3)" }} />
             </radialGradient>
           </defs>
 
@@ -307,7 +344,9 @@ export function LifeScore({ pct }: { pct: number | null }) {
                   fontSize: cqw(17),
                   marginTop: cqw(8),
                   paddingLeft: cqw(2),
-                  color: "rgba(255,255,255,0.5)",
+                  // Themed, not a fixed white: at 50% white this vanished entirely
+                  // against the light dial's near-white face.
+                  color: "var(--c-text-dim)",
                 }}
               >
                 %
