@@ -40,9 +40,14 @@ function shortDate(key: string): string {
 export function LifeScoreModal({
   pct,
   weeks,
+  dialLine1,
+  dialLine2,
 }: {
   pct: number | null;
   weeks: WeekScore[];
+  /** The dial's two caption lines. Renameable in settings. */
+  dialLine1: string;
+  dialLine2: string;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -80,7 +85,7 @@ export function LifeScoreModal({
         aria-label="Life score this week — see previous weeks"
         className="block w-full cursor-pointer border-0 bg-transparent p-0 transition-opacity hover:opacity-90"
       >
-        <LifeScore pct={pct} />
+        <LifeScore pct={pct} line1={dialLine1} line2={dialLine2} />
       </button>
 
       <AnimatePresence>

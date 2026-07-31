@@ -266,29 +266,42 @@ input::placeholder {
 .theme-toggle {
   display: flex;
   align-items: center;
-  width: 46px;
-  height: 24px;
-  padding: 3px;
+  justify-content: center;
+  /* Square and generous: the glyph is 19px but the tap target shouldn't be. 36px is
+     comfortably past the 24px minimum without crowding the username beside it. */
+  width: 36px;
+  height: 36px;
   border-radius: 999px;
-  background: var(--c-toggle-bg);
-  transition: background-color 0.25s ease;
+  background: transparent;
   cursor: pointer;
   flex: none;
+  /* Dim like the rest of the nav furniture while the page is dark — the bulb is off,
+     so it shouldn't draw the eye. */
+  color: var(--c-text-dim);
+  transition: color 0.25s ease;
 }
 
-.theme-toggle > .theme-knob {
-  width: 18px;
-  height: 18px;
-  border-radius: 999px;
-  background: var(--c-toggle-knob);
-  /* Springy rather than linear, to match the pill on the landing page. */
-  transition:
-    transform 0.28s cubic-bezier(0.34, 1.4, 0.64, 1),
-    background-color 0.25s ease;
+.theme-toggle > .theme-bulb .bulb-glass {
+  fill: none;
+  transition: fill 0.25s ease;
 }
 
-[data-theme="light"] .theme-toggle > .theme-knob {
-  transform: translateX(22px);
+/* Lit: the glass fills and the whole glyph takes the accent, so "on" is carried by
+   both fill AND colour rather than colour alone. */
+[data-theme="light"] .theme-toggle {
+  color: #e8624a;
+}
+
+[data-theme="light"] .theme-toggle > .theme-bulb .bulb-glass {
+  fill: currentColor;
+}
+
+.theme-toggle:hover {
+  color: var(--c-text);
+}
+
+[data-theme="light"] .theme-toggle:hover {
+  color: #d4573f;
 }
 
 .theme-toggle:focus-visible {
@@ -296,9 +309,32 @@ input::placeholder {
   outline-offset: 3px;
 }
 
+/* ── Settings link ─────────────────────────────────────────────────────────── */
+.nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  color: var(--c-text-dim);
+  transition: color 0.25s ease;
+  flex: none;
+}
+
+.nav-icon:hover {
+  color: var(--c-text);
+}
+
+.nav-icon:focus-visible {
+  outline: 2px solid #e8624a;
+  outline-offset: 3px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .theme-toggle,
-  .theme-toggle > .theme-knob {
+  .theme-toggle > .theme-bulb .bulb-glass,
+  .nav-icon {
     transition: none;
   }
 }

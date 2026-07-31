@@ -19,12 +19,15 @@ export function GoalField({
   dayKey,
   label,
   initial,
+  fieldLabel,
   onError,
 }: {
   dayKey: string;
   /** Day name, used for the accessible label. */
   label: string;
   initial: string;
+  /** The visible caption, e.g. "Goal". Renameable in settings. */
+  fieldLabel: string;
   onError: (message: string | null) => void;
 }) {
   const [text, setText] = useState(initial);
@@ -71,7 +74,7 @@ export function GoalField({
         className="shrink-0 text-[10px] font-bold uppercase tracking-[0.18em]"
         style={{ color: CORAL }}
       >
-        Goal
+        {fieldLabel}
       </label>
       <input
         id={`goal-${dayKey}`}

@@ -90,7 +90,11 @@ export type WellnessDay = {
   day: DayKey;
   /** Full day name, used as the row header. */
   label: string;
-  kind: WorkoutKind;
+  /**
+   * The activity shown under the day name. Free text rather than WorkoutKind: it's
+   * renameable in settings, so "lift" is a default, not a closed set.
+   */
+  kind: string;
   done: boolean;
   /** True for the row matching today, so the UI can highlight it. */
   isToday: boolean;

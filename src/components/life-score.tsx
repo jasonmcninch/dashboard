@@ -134,7 +134,16 @@ function annulusPath(cx: number, cy: number, outer: number, inner: number): stri
  *
  * Rendered on the server — it's a readout with no interaction.
  */
-export function LifeScore({ pct }: { pct: number | null }) {
+export function LifeScore({
+  pct,
+  line1,
+  line2,
+}: {
+  pct: number | null;
+  /** Caption under the number, split across two lines by design. */
+  line1: string;
+  line2: string;
+}) {
   const litTicks = pct === null ? 0 : Math.round((pct / 100) * TICK_COUNT);
 
   const ticks = Array.from({ length: TICK_COUNT }, (_, index) => {
@@ -365,9 +374,9 @@ export function LifeScore({ pct }: { pct: number | null }) {
               marginRight: "-0.22em",
             }}
           >
-            Life Score
+            {line1}
             <br />
-            This Week
+            {line2}
           </span>
         </div>
       </div>

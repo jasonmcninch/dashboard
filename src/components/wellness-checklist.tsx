@@ -18,7 +18,14 @@ const surface = {
   border: "1px solid var(--c-border)",
 } as const;
 
-export function WellnessChecklist({ initial }: { initial: Wellness }) {
+export function WellnessChecklist({
+  initial,
+  goalLabel,
+}: {
+  initial: Wellness;
+  /** Caption on each day's goal field. Renameable in settings. */
+  goalLabel: string;
+}) {
   const [wellness, setWellness] = useState(initial);
   const [, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -108,6 +115,7 @@ export function WellnessChecklist({ initial }: { initial: Wellness }) {
               dayKey={day.day}
               label={day.label}
               initial={day.goal}
+              fieldLabel={goalLabel}
               onError={setError}
             />
           </div>

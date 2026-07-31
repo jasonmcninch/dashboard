@@ -19,7 +19,14 @@ const surface = {
   border: "1px solid var(--c-border)",
 } as const;
 
-export function FamilyChecklist({ initial }: { initial: Family }) {
+export function FamilyChecklist({
+  initial,
+  datePlaceholder,
+}: {
+  initial: Family;
+  /** Placeholder on the date note field. Renameable in settings. */
+  datePlaceholder: string;
+}) {
   const [family, setFamily] = useState(initial);
   const [, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -102,6 +109,7 @@ export function FamilyChecklist({ initial }: { initial: Family }) {
                 key={family.turnStart}
                 daughter={row.daughter ?? ""}
                 initial={row.note ?? ""}
+                placeholder={datePlaceholder}
                 onSave={(note) =>
                   void send(
                     { action: "note", item: "date", note },
@@ -148,10 +156,13 @@ export function FamilyChecklist({ initial }: { initial: Family }) {
 function DateNote({
   daughter,
   initial,
+  placeholder,
   onSave,
 }: {
   daughter: string;
   initial: string;
+  /** Renameable in settings, so it's passed in rather than hard-coded here. */
+  placeholder: string;
   onSave: (note: string) => void;
 }) {
   const [text, setText] = useState(initial);
@@ -185,7 +196,7 @@ function DateNote({
           type="text"
           value={text}
           maxLength={NOTE_MAX_LENGTH}
-          placeholder="What's the big idea?"
+          placeholder={placeholder}
           onChange={(event) => {
             setText(event.target.value);
             if (timer.current) clearTimeout(timer.current);

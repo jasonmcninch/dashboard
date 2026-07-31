@@ -1,11 +1,10 @@
 import { dayKey, isoWeekKey } from "../calendar";
+import { getLabels } from "../settings";
 import { JsonStore } from "../json-store";
 import { currentDaughter, turnKey, turnStart } from "./rotation";
 import {
   CADENCE,
   FAMILY_ITEMS,
-  FAMILY_LABELS,
-  FAMILY_SUBTEXT,
   NOTE_MAX_LENGTH,
   type Cadence,
   type Family,
@@ -45,15 +44,19 @@ export function periodKey(cadence: Cadence, date = new Date()): string {
 }
 
 export async function getFamily(): Promise<Family> {
-  const file = await store.read();
+  const [file, labels] = await Promise.all([store.read(), getLabels()]);
 
   const rows: FamilyRow[] = FAMILY_ITEMS.map((item) => {
     const cadence = CADENCE[item];
     const record = file.items[item]?.[periodKey(cadence)] ?? {};
     return {
       item,
-      label: FAMILY_LABELS[item],
-      subtext: FAMILY_SUBTEXT[item],
+      label: labels[`family.${item}`],
+      // Only leadership ships a subtext; an empty override collapses to undefined so
+      // the row doesn't render a blank second line.
+      subtext: labels["family.leadership.subtext"] && item === "leadership"
+        ? labels["family.leadership.subtext"]
+        : undefined,
       cadence,
       done: record.done === true,
       note: item === "date" ? (record.note ?? "") : undefined,

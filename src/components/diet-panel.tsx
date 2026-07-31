@@ -27,7 +27,14 @@ export type DietState = {
   satisfaction: number | null;
 };
 
-export function DietPanel({ initial }: { initial: DietState }) {
+export function DietPanel({
+  initial,
+  title,
+}: {
+  initial: DietState;
+  /** Renameable in settings; defaults live in the label registry. */
+  title: string;
+}) {
   // Track "set" separately from the value: the slider still needs a position
   // before it's ever been dragged, but the readout must not claim you rated
   // today a 5 when you haven't rated it at all.
@@ -91,7 +98,7 @@ export function DietPanel({ initial }: { initial: DietState }) {
           className="text-[10px] uppercase tracking-[0.2em]"
           style={{ color: "var(--c-text-faint)" }}
         >
-          Satisfaction Level
+          {title}
         </label>
         <span className="text-sm font-bold" style={{ color: CORAL }}>
           {isSet ? `${value}%` : "—"}

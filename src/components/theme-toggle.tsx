@@ -27,6 +27,7 @@ export function ThemeToggle() {
       // stale pressed state is worse than none. The label names the action instead.
       aria-label="Toggle light or dark mode"
       title="Toggle light or dark mode"
+      data-toggle-bulb
       onClick={() => {
         const root = document.documentElement;
         const next = root.dataset.theme === "light" ? "dark" : "light";
@@ -42,7 +43,30 @@ export function ThemeToggle() {
         }
       }}
     >
-      <span className="theme-knob" aria-hidden />
+      {/* A bulb: outline while the page is dark, filled once it's lit. Both states are
+          the same path — only the glass's fill and the icon's colour change, which is
+          what keeps this driveable from CSS with no React state. */}
+      <svg
+        className="theme-bulb"
+        width="19"
+        height="19"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden
+      >
+        {/* Glass. `bulb-glass` is what CSS fills in light mode. */}
+        <path
+          className="bulb-glass"
+          d="M12 3a6 6 0 0 0-3.4 10.9c.4.3.6.8.6 1.3v.3h5.6v-.3c0-.5.2-1 .6-1.3A6 6 0 0 0 12 3Z"
+        />
+        {/* Screw base: two contacts under the glass. */}
+        <path d="M9.6 18.2h4.8" />
+        <path d="M10.7 20.7h2.6" />
+      </svg>
     </button>
   );
 }

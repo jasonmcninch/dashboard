@@ -16,7 +16,9 @@ import type { ActionRequest, ConnectionStatus } from "@/lib/data";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/session";
 import { getSpiritual } from "@/lib/spiritual";
 import { getWellness } from "@/lib/wellness";
+import { getLabels } from "@/lib/settings";
 import { cookies } from "next/headers";
+import Link from "next/link";
 
 const CORAL = "#E8624A";
 
@@ -381,7 +383,7 @@ export default async function DashboardPage() {
   const source = getDashboardSource();
   // Wellness is local state, so it loads independently of the integrations —
   // a Gmail outage shouldn't take the checklist down with it.
-  const [data, wellness, spiritual, diet, family, reminders] =
+  const [data, wellness, spiritual, diet, family, reminders, labels] =
     await Promise.all([
       source.load(),
       getWellness(),
@@ -389,6 +391,9 @@ export default async function DashboardPage() {
       getDiet(),
       getFamily(),
       getReminders(),
+      // Every renameable string on this page. Read per request, so returning from
+      // the settings screen shows the new wording with no cache to invalidate.
+      getLabels(),
     ]);
   const usingMockData = source.name === "mock";
 
@@ -446,11 +451,27 @@ export default async function DashboardPage() {
         <span className="text-sm font-bold tracking-widest" style={{ color: CORAL }}>
           mcninch.live
         </span>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1">
           <ThemeToggle />
-          <span className="text-[11px]" style={{ color: "var(--c-text-dim)" }}>
+          <Link href="/dashboard/settings" className="nav-icon" aria-label="Settings">
+            <SectionIcon>
+              {/* Gear: a hub, a rim, and eight teeth STRADDLING the rim.
+                  Radial strokes sitting entirely outside the circle read as a sun, not
+                  a cog — the teeth have to cross the boundary they belong to. Drawn as
+                  short strokes rather than a true involute profile, which collapses
+                  into a grey blur at this size. */}
+              <circle cx="12" cy="12" r="3.1" />
+              <circle cx="12" cy="12" r="7.9" />
+              <path d="M12 2.7v2.8M12 21.3v-2.8M21.3 12h-2.8M2.7 12h2.8" />
+              <path d="M18.6 5.4l-1.98 1.98M5.4 18.6l1.98-1.98M18.6 18.6l-1.98-1.98M5.4 5.4l1.98 1.98" />
+            </SectionIcon>
+          </Link>
+          {/* The two icons sit tight together — each already carries 36px of tap
+              target — then a real gap before the text. */}
+          <span className="ml-2 text-[11px]" style={{ color: "var(--c-text-dim)" }}>
             {session?.sub}
           </span>
+          <span className="w-1" aria-hidden />
           <form action="/api/auth/logout" method="POST">
             <button
               type="submit"
@@ -476,7 +497,12 @@ export default async function DashboardPage() {
           reminders={reminders}
         />
 
-        <LifeScoreModal pct={weekScore} weeks={lifeHistory.weeks} />
+        <LifeScoreModal
+          pct={weekScore}
+          weeks={lifeHistory.weeks}
+          dialLine1={labels["dial.line1"]}
+          dialLine2={labels["dial.line2"]}
+        />
 
         {/* ── Summary ──
             Every section's headline number in one row, so the whole day reads at a
@@ -487,12 +513,12 @@ export default async function DashboardPage() {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {/* Staggered left to right, starting after the dial's sweep has begun so
                 the eye follows the page down rather than everything moving at once. */}
-            <ScoreBox dense glowWhenIncomplete delay={0.5} pct={family.completedPct} caption="Family" href="#family" />
-            <ScoreBox dense glowWhenIncomplete delay={0.58} pct={spiritual.completedPct} caption="Spiritual" href="#spiritual" />
-            <ScoreBox dense glowWhenIncomplete delay={0.66} pct={wellness.completedPct} caption="Wellness" href="#wellness" />
-            <ScoreBox dense glowWhenIncomplete delay={0.74} pct={dietPct} caption="Diet" href="#diet" />
-            <ScoreBox dense glowWhenIncomplete delay={0.82} pct={mailCleanPct(data.mail)} caption="Email" href="#email" />
-            <ScoreBox dense glowWhenIncomplete delay={0.9} pct={reminders.completedPct} caption="Reminders" href="#reminders" />
+            <ScoreBox dense glowWhenIncomplete delay={0.5} pct={family.completedPct} caption={labels["summary.family"]} href="#family" />
+            <ScoreBox dense glowWhenIncomplete delay={0.58} pct={spiritual.completedPct} caption={labels["summary.spiritual"]} href="#spiritual" />
+            <ScoreBox dense glowWhenIncomplete delay={0.66} pct={wellness.completedPct} caption={labels["summary.wellness"]} href="#wellness" />
+            <ScoreBox dense glowWhenIncomplete delay={0.74} pct={dietPct} caption={labels["summary.diet"]} href="#diet" />
+            <ScoreBox dense glowWhenIncomplete delay={0.82} pct={mailCleanPct(data.mail)} caption={labels["summary.email"]} href="#email" />
+            <ScoreBox dense glowWhenIncomplete delay={0.9} pct={reminders.completedPct} caption={labels["summary.reminders"]} href="#reminders" />
           </div>
         </section>
 
@@ -506,7 +532,7 @@ export default async function DashboardPage() {
 
         {/* ── Requests ── */}
         <section id="requests" data-section className="mb-12">
-          <SectionTag icon={<ServiceBellIcon />}>Asking you for something</SectionTag>
+          <SectionTag icon={<ServiceBellIcon />}>{labels["section.requests"]}</SectionTag>
           <div className="space-y-2 rounded-2xl p-5" style={panel}>
             {data.requests.length === 0 ? (
               <p className="py-6 text-center text-[11px]" style={{ color: "var(--c-text-faint)" }}>
@@ -522,19 +548,19 @@ export default async function DashboardPage() {
 
         {/* ── Family ── */}
         <section id="family" data-section className="mb-12">
-          <SectionTag icon={<PeopleIcon />}>Family</SectionTag>
+          <SectionTag icon={<PeopleIcon />}>{labels["section.family"]}</SectionTag>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-[auto_1fr]">
-            <ScoreBox pct={family.completedPct} caption="Family" />
+            <ScoreBox pct={family.completedPct} caption={labels["panel.family"]} />
             <div className="rounded-2xl p-5" style={panel}>
-              <FamilyChecklist initial={family} />
+              <FamilyChecklist initial={family} datePlaceholder={labels["family.date.placeholder"]} />
             </div>
           </div>
         </section>
         {/* ── Spiritual ── */}
         <section id="spiritual" data-section className="mb-12">
-          <SectionTag icon={<BookIcon />}>Spiritual</SectionTag>
+          <SectionTag icon={<BookIcon />}>{labels["section.spiritual"]}</SectionTag>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-[auto_1fr]">
-            <ScoreBox pct={spiritual.completedPct} caption="Spirituality" />
+            <ScoreBox pct={spiritual.completedPct} caption={labels["panel.spiritual"]} />
             <div className="rounded-2xl p-5" style={panel}>
               <SpiritualChecklist initial={spiritual} />
             </div>
@@ -542,57 +568,51 @@ export default async function DashboardPage() {
         </section>
         {/* ── Wellness ── */}
         <section id="wellness" data-section className="mb-12">
-          <SectionTag icon={<BarbellIcon />}>Wellness</SectionTag>
+          <SectionTag icon={<BarbellIcon />}>{labels["section.wellness"]}</SectionTag>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-[auto_1fr]">
-            <ScoreBox pct={wellness.completedPct} caption="This week" />
+            <ScoreBox pct={wellness.completedPct} caption={labels["panel.wellness"]} />
             <div className="rounded-2xl p-5" style={panel}>
-              <WellnessChecklist initial={wellness} />
+              <WellnessChecklist initial={wellness} goalLabel={labels["wellness.goalLabel"]} />
             </div>
           </div>
         </section>
         {/* ── Diet ── */}
         <section id="diet" data-section className="mb-12">
-          <SectionTag icon={<HamburgerIcon />}>Diet</SectionTag>
+          <SectionTag icon={<HamburgerIcon />}>{labels["section.diet"]}</SectionTag>
           <div className="rounded-2xl p-5" style={panel}>
-            <DietPanel initial={diet} />
+            <DietPanel initial={diet} title={labels["diet.title"]} />
           </div>
         </section>
         {/* ── Inbox ── */}
         <section id="email" data-section className="mb-12">
-          <SectionTag icon={<EnvelopeIcon />}>Email</SectionTag>
+          <SectionTag icon={<EnvelopeIcon />}>{labels["section.email"]}</SectionTag>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-[auto_1fr]">
             <ScoreBox
               pct={mailCleanPct(data.mail)}
-              caption={
-                <>
-                  Clean &amp;
-                  <br />
-                  Up To Date
-                </>
-              }
+              caption={labels["panel.email"]}
             />
             <div className="grid grid-cols-2 gap-3">
-              <StatCard value={data.mail.unread} label="Unread" href={data.mail.links.unreadInbox} />
-              <StatCard value={data.mail.inboxTotal} label="In inbox" />
-              <StatCard value={data.mail.workUnread} label="Unread Work" href={data.mail.links.unreadWork} />
-              <StatCard value={data.mail.trashed} label="In trash" href={data.mail.links.trash} />
+              <StatCard value={data.mail.unread} label={labels["mail.unread"]} href={data.mail.links.unreadInbox} />
+              <StatCard value={data.mail.inboxTotal} label={labels["mail.inbox"]} />
+              <StatCard value={data.mail.workUnread} label={labels["mail.work"]} href={data.mail.links.unreadWork} />
+              <StatCard value={data.mail.trashed} label={labels["mail.trash"]} href={data.mail.links.trash} />
             </div>
           </div>
         </section>
         {/* ── Slack ── */}
         <section id="slack" data-section className="mb-12">
-          <SectionTag>Slack</SectionTag>
+          <SectionTag>{labels["section.slack"]}</SectionTag>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <StatCard value={data.slack.unread} label="Unread" />
-            <StatCard value={data.slack.received} label="Received" />
-            <StatCard value={data.slack.awaiting} label="Awaiting reply" />
+            <StatCard value={data.slack.unread} label={labels["slack.unread"]} />
+            <StatCard value={data.slack.received} label={labels["slack.received"]} />
+            <StatCard value={data.slack.awaiting} label={labels["slack.awaiting"]} />
           </div>
         </section>
         {/* ── Reminders ── */}
         <section id="reminders" data-section className="mb-12">
-          <SectionTag icon={<BellRingIcon />}>Reminders &amp; Promptings</SectionTag>
+          <SectionTag icon={<BellRingIcon />}>{labels["section.reminders"]}</SectionTag>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-[auto_1fr]">
-            <ScoreBox pct={reminders.completedPct} caption="Reminders &amp; Promptings" />
+            <ScoreBox pct={reminders.completedPct} caption={labels["panel.reminders"]} />
             <div className="rounded-2xl p-5" style={panel}>
               <RemindersPanel initial={reminders} />
             </div>
