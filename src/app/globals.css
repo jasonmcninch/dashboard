@@ -127,3 +127,267 @@
     @apply font-sans;
   }
 }
+
+/* ── mcninch.live theme tokens ─────────────────────────────────────────── */
+:root,
+[data-theme="dark"] {
+  --c-bg: #0a0a0a;
+  --c-surface: rgba(255, 255, 255, 0.06);
+  --c-surface2: rgba(255, 255, 255, 0.03);
+  --c-text: #ffffff;
+  --c-text-dim: rgba(255, 255, 255, 0.40);
+  --c-text-faint: rgba(255, 255, 255, 0.25);
+  --c-border: rgba(255, 255, 255, 0.08);
+  --c-border-dim: rgba(255, 255, 255, 0.07);
+  --c-nav-grad: linear-gradient(to bottom, rgba(10,10,10,0.95) 0%, transparent 100%);
+  --c-ring-track: rgba(255, 255, 255, 0.12);
+  --c-shadow: 0 8px 32px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --c-shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --c-blur: blur(14px);
+}
+
+[data-theme="light"] {
+  --c-bg: #f2f2f5;
+  --c-surface: rgba(255, 255, 255, 0.75);
+  --c-surface2: rgba(255, 255, 255, 0.55);
+  --c-text: #0a0a0a;
+  --c-text-dim: rgba(0, 0, 0, 0.50);
+  --c-text-faint: rgba(0, 0, 0, 0.30);
+  --c-border: rgba(255, 255, 255, 0.70);
+  --c-border-dim: rgba(0, 0, 0, 0.08);
+  --c-nav-grad: linear-gradient(to bottom, rgba(242,242,245,0.95) 0%, transparent 100%);
+  --c-ring-track: rgba(0, 0, 0, 0.12);
+  --c-shadow: 0 8px 32px rgba(0, 0, 0, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  --c-shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  --c-blur: blur(14px);
+}
+
+input::placeholder {
+  color: var(--c-text-faint);
+}
+
+/* ── In-page navigation ────────────────────────────────────────────────────
+   Tapping a summary box jumps to its section. */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Sections would otherwise land underneath the sticky nav. */
+[data-section] {
+  scroll-margin-top: 84px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    /* An instant jump for anyone who asked for less motion. The destination is the
+       point; the travel isn't. */
+    scroll-behavior: auto;
+  }
+}
+
+/* ── Attention glow ────────────────────────────────────────────────────────
+   Marks a summary box that isn't finished. Pure CSS so it works inside a server
+   component — no JavaScript needed to make it appear on load.
+
+   The pulse is deliberately slow and shallow. This sits at the top of a page the
+   user opens every day, so a fast or high-contrast blink would become something to
+   resent rather than notice. */
+/* A neumorphic panel: the same light-from-the-upper-left convention as the score
+   ring, translated to a rounded rectangle.
+
+   Note there is no border. A 1px outline is a drawn edge, which is the opposite of
+   what neumorphism does — the form has to be read from the shading alone. The rim
+   highlight and rim shadow below are inset shadows standing in for that edge. */
+.neu-box {
+  position: relative;
+  background: linear-gradient(145deg, #1f1f1f 0%, #191919 32%, #131313 64%, #0c0c0c 100%);
+  box-shadow:
+    /* Lift. The outer highlight is what actually sells "raised", and it was far too
+       timid at 3% — the score ring's own highlight peaks near 30%, which is why that
+       read as proud of the page and these read as flat. */
+    -6px -6px 16px rgba(255, 255, 255, 0.085),
+    -2px -2px 5px rgba(255, 255, 255, 0.05),
+    /* Weight below-right, deepened to match. */ 7px 9px 20px rgba(0, 0, 0, 0.72),
+    3px 4px 8px rgba(0, 0, 0, 0.5),
+    /* Rim, standing in for a border. */ inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.16),
+    inset -1.5px -2.5px 4px rgba(0, 0, 0, 0.6);
+}
+
+/* A press, so a tappable box acknowledges the tap by sinking slightly. */
+.neu-box.neu-press:active {
+  box-shadow:
+    -2px -2px 6px rgba(255, 255, 255, 0.05),
+    3px 4px 9px rgba(0, 0, 0, 0.6),
+    inset 1.5px 2px 4px rgba(0, 0, 0, 0.5),
+    inset -1px -1px 2px rgba(255, 255, 255, 0.06);
+}
+
+/* The attention glow lives on an overlay rather than the box itself.
+   Both effects want `box-shadow`, and a single element only has one — animating it
+   for the pulse would wipe out the neumorphic shading underneath. A pseudo-element
+   keeps the two independent. */
+@keyframes score-glow-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(232, 98, 74, 0.26),
+      0 0 14px 0 rgba(232, 98, 74, 0.15),
+      0 0 26px 0 rgba(232, 98, 74, 0.07);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(232, 98, 74, 0.4),
+      0 0 18px 0 rgba(232, 98, 74, 0.24),
+      0 0 34px 0 rgba(232, 98, 74, 0.13);
+  }
+}
+
+@keyframes score-glow-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.score-glow::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* Follows whatever radius the box has, so this never needs to know about it. */
+  border-radius: inherit;
+  pointer-events: none;
+  animation:
+    score-glow-fade 0.7s ease-out both,
+    score-glow-pulse 4.5s ease-in-out 0.7s infinite;
+}
+
+/* Anyone who has asked for less motion keeps the glow but loses the pulse — the
+   signal survives, the movement doesn't. */
+@media (prefers-reduced-motion: reduce) {
+  .score-glow::after {
+    animation: none;
+    box-shadow:
+      0 0 0 1px rgba(232, 98, 74, 0.33),
+      0 0 16px 0 rgba(232, 98, 74, 0.19);
+  }
+}
+
+/* ── Range slider ──────────────────────────────────────────────────────────
+   A recessed pill groove with a coral grip handle.
+
+   All of it lives here rather than inline because thumbs and tracks are
+   pseudo-elements, which inline styles cannot reach. The raised outer rim is a
+   wrapper element in the component; this file styles the groove and the handle. */
+
+input[type="range"].detent-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 30px; /* room for the handle to overhang the groove */
+  background: transparent;
+  cursor: pointer;
+}
+
+/* The groove. Deep inset shadow at the top, faint lift at the bottom — the same
+   light-from-above convention as the checkboxes and the score dial. */
+input[type="range"].detent-slider::-webkit-slider-runnable-track {
+  height: 14px;
+  border-radius: 999px;
+  /* Filled portion, driven by --fill which the component sets inline.
+     A custom property is the only way to get the current value into a
+     pseudo-element — ::-webkit-slider-runnable-track can't read the input's value,
+     but it does inherit custom properties from it. */
+  background:
+    linear-gradient(
+        90deg,
+        #d4573f 0%,
+        #e8624a var(--fill, 0%),
+        transparent var(--fill, 0%)
+      )
+      no-repeat,
+    linear-gradient(180deg, #0b0b0b 0%, #141414 100%);
+  box-shadow:
+    inset 0 2px 5px rgba(0, 0, 0, 0.9),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.05);
+}
+
+input[type="range"].detent-slider::-moz-range-track {
+  height: 14px;
+  border-radius: 999px;
+  /* Filled portion, driven by --fill which the component sets inline.
+     A custom property is the only way to get the current value into a
+     pseudo-element — ::-webkit-slider-runnable-track can't read the input's value,
+     but it does inherit custom properties from it. */
+  background:
+    linear-gradient(
+        90deg,
+        #d4573f 0%,
+        #e8624a var(--fill, 0%),
+        transparent var(--fill, 0%)
+      )
+      no-repeat,
+    linear-gradient(180deg, #0b0b0b 0%, #141414 100%);
+  box-shadow:
+    inset 0 2px 5px rgba(0, 0, 0, 0.9),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.05);
+}
+
+/* The handle: a coral pill taller than the groove, with grip ridges.
+   The ridges are a repeating gradient rather than child elements, since a
+   pseudo-element can't contain any. */
+input[type="range"].detent-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 34px;
+  height: 26px;
+  margin-top: -6px; /* centres the taller handle on the 14px groove */
+  border-radius: 9px;
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 10px,
+      rgba(0, 0, 0, 0.26) 10px 11.5px,
+      rgba(255, 255, 255, 0.16) 11.5px 12.5px,
+      transparent 12.5px 22px
+    ),
+    linear-gradient(180deg, #ffa592 0%, #f2795f 38%, #db5a41 72%, #a93d2a 100%);
+  box-shadow:
+    0 3px 7px rgba(0, 0, 0, 0.65),
+    inset 0 2px 1.5px rgba(255, 255, 255, 0.55),
+    inset 0 -3px 4px rgba(0, 0, 0, 0.35);
+  cursor: grab;
+}
+
+input[type="range"].detent-slider::-moz-range-thumb {
+  width: 34px;
+  height: 26px;
+  border: none;
+  border-radius: 9px;
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 10px,
+      rgba(0, 0, 0, 0.26) 10px 11.5px,
+      rgba(255, 255, 255, 0.16) 11.5px 12.5px,
+      transparent 12.5px 22px
+    ),
+    linear-gradient(180deg, #ffa592 0%, #f2795f 38%, #db5a41 72%, #a93d2a 100%);
+  box-shadow:
+    0 3px 7px rgba(0, 0, 0, 0.65),
+    inset 0 2px 1.5px rgba(255, 255, 255, 0.55),
+    inset 0 -3px 4px rgba(0, 0, 0, 0.35);
+  cursor: grab;
+}
+
+input[type="range"].detent-slider:active::-webkit-slider-thumb {
+  cursor: grabbing;
+  /* Presses in slightly while held — the highlight softens and the lift drops. */
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.7),
+    inset 0 2px 2px rgba(255, 255, 255, 0.4),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.4);
+}
+
+input[type="range"].detent-slider:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid #e8624a;
+  outline-offset: 3px;
+}

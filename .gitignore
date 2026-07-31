@@ -32,6 +32,8 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...but the template carries no secrets and should be committed.
+!.env.example
 
 # vercel
 .vercel
@@ -39,3 +41,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local wellness checklist store (never commit personal data)
+.data/
+
+# scratch output from ad-hoc test compiles
+.test-build/
