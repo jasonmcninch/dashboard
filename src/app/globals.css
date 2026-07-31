@@ -162,12 +162,12 @@
   --ls-hi-gain: 1;
   --ls-lo-ink: #000000;
   --ls-lo-gain: 1;
-  /* The disc behind the readout, pressed into the page. Reads DARKER than the page
-     at the upper-left where the dish floor turns away from the light, easing back
-     toward it at the lower-right. */
-  --ls-disc-1: #080808;
+  /* The disc behind the readout, raised out of the page. Brightest at the upper-left
+     where the crown faces the light, falling below the page value at the lower-right
+     as it curves away. */
+  --ls-disc-1: #121212;
   --ls-disc-2: #0c0c0c;
-  --ls-disc-3: #121212;
+  --ls-disc-3: #080808;
   /* Weaker shadow, stronger highlight than the ring. See discStop(). */
   --ls-dlo-gain: 0.42;
   --ls-dhi-gain: 1.3;
@@ -194,6 +194,7 @@
   --c-bar-track-dim: rgba(255, 255, 255, 0.06);
   --c-toggle-bg: #2a2a2a;
   --c-toggle-knob: #ffffff;
+  --glow-gain: 1;
 }
 
 [data-theme="light"] {
@@ -228,12 +229,12 @@
   --ls-hi-gain: 2.4;
   --ls-lo-ink: #000000;
   --ls-lo-gain: 0.26;
-  /* Same read on a light page: the far side of the dish is nearly the page colour,
-     the near side sits below it. The swing is smaller than in dark mode because a
-     light surface shows a shallow shadow far more readily. */
-  --ls-disc-1: #e7e7ee;
-  --ls-disc-2: #eeeef3;
-  --ls-disc-3: #f4f4f7;
+  /* Same read on a light page: the lit crown goes above the page colour, the far
+     side settles below it. The swing is smaller than in dark mode because a light
+     surface shows a shallow shadow far more readily. */
+  --ls-disc-1: #fbfbfd;
+  --ls-disc-2: #f2f2f6;
+  --ls-disc-3: #e6e6ec;
   --ls-dlo-gain: 0.30;
   --ls-dhi-gain: 2.2;
   --ls-tick-lit: rgba(0, 0, 0, 0.72);
@@ -259,6 +260,10 @@
   --c-bar-track-dim: rgba(0, 0, 0, 0.07);
   --c-toggle-bg: #e0e0e0;
   --c-toggle-knob: #111111;
+  /* Coral at a given alpha reads weaker over white than over near-black — less
+     contrast to work against — so the same glow needs a little more push here to feel
+     equally present rather than merely measure the same. */
+  --glow-gain: 1.22;
 }
 
 input::placeholder {
@@ -437,15 +442,15 @@ html {
   0%,
   100% {
     box-shadow:
-      0 0 0 1px rgba(232, 98, 74, 0.26),
-      0 0 14px 0 rgba(232, 98, 74, 0.15),
-      0 0 26px 0 rgba(232, 98, 74, 0.07);
+      0 0 0 1px rgba(232, 98, 74, calc(var(--glow-gain) * 0.34)),
+      0 0 14px 0 rgba(232, 98, 74, calc(var(--glow-gain) * 0.2)),
+      0 0 26px 0 rgba(232, 98, 74, calc(var(--glow-gain) * 0.1));
   }
   50% {
     box-shadow:
-      0 0 0 1px rgba(232, 98, 74, 0.4),
-      0 0 18px 0 rgba(232, 98, 74, 0.24),
-      0 0 34px 0 rgba(232, 98, 74, 0.13);
+      0 0 0 1px rgba(232, 98, 74, calc(var(--glow-gain) * 0.52)),
+      0 0 18px 0 rgba(232, 98, 74, calc(var(--glow-gain) * 0.32)),
+      0 0 34px 0 rgba(232, 98, 74, calc(var(--glow-gain) * 0.18));
   }
 }
 
@@ -473,8 +478,8 @@ html {
   .score-glow::after {
     animation: none;
     box-shadow:
-      0 0 0 1px rgba(232, 98, 74, 0.33),
-      0 0 16px 0 rgba(232, 98, 74, 0.19);
+      0 0 0 1px rgba(232, 98, 74, calc(var(--glow-gain) * 0.43)),
+      0 0 16px 0 rgba(232, 98, 74, calc(var(--glow-gain) * 0.26));
   }
 }
 

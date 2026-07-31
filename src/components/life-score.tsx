@@ -257,27 +257,28 @@ export function LifeScore({ pct }: { pct: number | null }) {
               <path d={ring} fillRule="evenodd" />
             </clipPath>
 
-            {/* The disc behind the readout. Darker at the upper-left, lighter toward
-                the lower-right — the floor of a dish tilts away from the light on the
-                side nearest it, which is the opposite of the ring's own face. */}
+            {/* The disc behind the readout. Lightest at the upper-left, falling away
+                toward the lower-right — a crown turned toward the light, the same sense
+                as the ring's own face. */}
             <linearGradient id="ls-disc" x1="0" y1="0" x2="1" y2="1">
               <stop offset="0" style={{ stopColor: "var(--ls-disc-1)" }} />
               <stop offset="0.55" style={{ stopColor: "var(--ls-disc-2)" }} />
               <stop offset="1" style={{ stopColor: "var(--ls-disc-3)" }} />
             </linearGradient>
 
-            {/* The same two ramps as the ring, run in the opposite direction.
-                A recess is not a raised form with different colours — it's the same
-                lighting read backwards: the wall nearest the light is the one turned
-                AWAY from it and falls into shadow, while the far wall catches it.
-                Reversing the gradient axis is enough; the stops don't change. */}
-            <linearGradient id="ls-hi-rev" x1="1.1" y1="1.1" x2="-0.15" y2="-0.15">
+            {/* The ring's two ramps on the disc's own gains, running in the SAME
+                direction as the ring's outer edge: highlight to the upper-left, shadow
+                to the lower-right. That is what makes the disc read as rising out of
+                the dial rather than sunk into it — the direction of these two axes is
+                the entire difference, and reversing them is all it took to invert the
+                form. The stops never change. */}
+            <linearGradient id="ls-hi-disc" x1="-0.15" y1="-0.15" x2="1.1" y2="1.1">
               {HIGHLIGHT_RAMP.map(([offset, alpha]) => (
                 <stop key={offset} offset={offset} style={discStop("hi", alpha)} />
               ))}
             </linearGradient>
 
-            <linearGradient id="ls-lo-rev" x1="1.1" y1="1.1" x2="-0.15" y2="-0.15">
+            <linearGradient id="ls-lo-disc" x1="-0.15" y1="-0.15" x2="1.1" y2="1.1">
               {SHADOW_RAMP.map(([offset, alpha]) => (
                 <stop key={offset} offset={offset} style={discStop("lo", alpha)} />
               ))}
@@ -346,20 +347,19 @@ export function LifeScore({ pct }: { pct: number | null }) {
             />
           </g>
 
-          {/* The disc the readout sits on: filled, and pressed into the page.
+          {/* The disc the readout sits on: filled, and raised out of the page.
               Exactly RING_INNER, so it meets the ring's inner wall with no gap. */}
           <circle cx={CENTER} cy={CENTER} r={RING_INNER} fill="url(#ls-disc)" />
           <g clipPath="url(#ls-disc-clip)" filter="url(#ls-disc-soft)">
-            {/* Shadow on the upper-left inner wall, highlight on the lower-right.
-                Both reversed relative to the ring's outer edge — that inversion is the
-                whole difference between something sunk into the page and something
-                rising out of it. */}
+            {/* Highlight on the upper-left, shadow on the lower-right — a surface
+                bulging toward the light. Shadow drawn first so the highlight sits over
+                it where the two overlap. */}
             <circle
               cx={CENTER}
               cy={CENTER}
               r={RING_INNER - DISC_EDGE / 2}
               fill="none"
-              stroke="url(#ls-lo-rev)"
+              stroke="url(#ls-lo-disc)"
               strokeWidth={DISC_EDGE}
             />
             <circle
@@ -367,7 +367,7 @@ export function LifeScore({ pct }: { pct: number | null }) {
               cy={CENTER}
               r={RING_INNER - DISC_EDGE / 2}
               fill="none"
-              stroke="url(#ls-hi-rev)"
+              stroke="url(#ls-hi-disc)"
               strokeWidth={DISC_EDGE}
             />
           </g>
