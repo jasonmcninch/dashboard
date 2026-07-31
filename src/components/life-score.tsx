@@ -9,6 +9,29 @@ const TICK_COUNT = 60;
 const BOX = 380;
 const CENTER = BOX / 2;
 
+/**
+ * A length from the 380-unit design into container-relative units.
+ *
+ * The dial is capped at BOX but shrinks to fit a narrow phone, and the readout is
+ * HTML rather than SVG text, so it doesn't scale with the viewBox for free. Sizing
+ * it in `cqw` against the dial's own container keeps the type locked to the ring at
+ * every width, with BOX still the single source of truth. Below ~428px the ring used
+ * to overflow the viewport and give the page a horizontal scrollbar.
+ */
+const cqw = (length: number) => `${((length / BOX) * 100).toFixed(4)}cqw`;
+
+/**
+ * Rounds a coordinate to a stable number of decimals.
+ *
+ * `Math.cos`/`Math.sin` are implementation-defined to the last bit, and the server's
+ * V8 is a different build from the browser's, so the same angle produced
+ * `230.67366430758` on the server and `230.67366430758003` in Chrome. React compares
+ * the serialized attribute, saw two different strings and reported a hydration
+ * mismatch for most of the sixty ticks. Three decimals is far below a device pixel in
+ * a 380-unit box, and identical on both sides.
+ */
+const q = (value: number) => Math.round(value * 1000) / 1000;
+
 // Same thickness as before.
 const RING_OUTER = 150;
 const RING_THICKNESS = 80;
@@ -77,10 +100,10 @@ export function LifeScore({ pct }: { pct: number | null }) {
 
     return {
       key: index,
-      x1: CENTER + Math.cos(angle) * inner,
-      y1: CENTER + Math.sin(angle) * inner,
-      x2: CENTER + Math.cos(angle) * TICK_OUTER,
-      y2: CENTER + Math.sin(angle) * TICK_OUTER,
+      x1: q(CENTER + Math.cos(angle) * inner),
+      y1: q(CENTER + Math.sin(angle) * inner),
+      x2: q(CENTER + Math.cos(angle) * TICK_OUTER),
+      y2: q(CENTER + Math.sin(angle) * TICK_OUTER),
       lit,
       litStroke: "rgba(255,255,255,0.85)",
       dimStroke: "rgba(255,255,255,0.06)",
@@ -98,16 +121,27 @@ export function LifeScore({ pct }: { pct: number | null }) {
     <div className="flex justify-center">
       <div
         className="relative"
-        style={{ width: BOX, height: BOX }}
+        style={{
+          // Caps at the design size on a wide screen, shrinks to the available width
+          // on a narrow one. aspectRatio rather than a fixed height so it stays
+          // circular while shrinking.
+          width: BOX,
+          maxWidth: "100%",
+          aspectRatio: "1",
+          // Makes this the reference box for the cqw() sizes in the readout below.
+          containerType: "inline-size",
+        }}
         role="img"
         aria-label={
           pct === null ? "Life score not available" : `Life score ${pct} percent`
         }
       >
+        {/* 100% rather than BOX px: the viewBox then does the scaling, so every
+            coordinate below stays in the 380-unit design space. */}
         <svg
           className="absolute inset-0"
-          width={BOX}
-          height={BOX}
+          width="100%"
+          height="100%"
           viewBox={`0 0 ${BOX} ${BOX}`}
           aria-hidden
         >
@@ -233,34 +267,64 @@ export function LifeScore({ pct }: { pct: number | null }) {
 
           {pct !== null && (
             <AnimatedBead
-              cx={CENTER + Math.cos(beadAngle) * beadRadius}
-              cy={CENTER + Math.sin(beadAngle) * beadRadius}
+              cx={q(CENTER + Math.cos(beadAngle) * beadRadius)}
+              cy={q(CENTER + Math.sin(beadAngle) * beadRadius)}
               litCount={litTicks}
             />
           )}
         </svg>
 
-        {/* Readout, as HTML so the type uses the page's font stack. */}
+        {/* Readout, as HTML so the type uses the page's font stack.
+            Everything here is centred on the DIGITS, not on the digits-plus-unit
+            cluster — the eye reads the number as the object and any unit hanging off
+            it as decoration, so centring the cluster leaves the number looking
+            pushed left. */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <div className="flex items-start leading-none">
+          <div className="relative flex items-start leading-none">
             <span
               className="font-bold tabular-nums"
-              style={{ fontSize: 56, letterSpacing: "-0.03em" }}
+              style={{
+                fontSize: cqw(56),
+                letterSpacing: "-0.03em",
+                // Letter-spacing is applied after EVERY character including the last,
+                // so the box disagrees with the ink by exactly one step and centring
+                // the box puts the ink off by half of it. Cancelling it on the trailing
+                // edge makes box and ink agree. Negative tracking, hence a positive
+                // correction.
+                marginRight: "0.03em",
+              }}
             >
               {pct === null ? "—" : pct}
             </span>
             {pct !== null && (
+              // Absolute, so it contributes no width: the flex row above is then
+              // exactly as wide as the digits and centres on them, with the unit
+              // hanging outside. `left-full` pins it to the digits' right edge, so it
+              // still tracks the number whether it reads 5, 50 or 100.
               <span
-                className="mt-2 pl-0.5 font-bold"
-                style={{ fontSize: 17, color: "rgba(255,255,255,0.5)" }}
+                className="absolute top-0 left-full font-bold"
+                style={{
+                  fontSize: cqw(17),
+                  marginTop: cqw(8),
+                  paddingLeft: cqw(2),
+                  color: "rgba(255,255,255,0.5)",
+                }}
               >
                 %
               </span>
             )}
           </div>
           <span
-            className="mt-1.5 text-center text-[9px] uppercase leading-tight tracking-[0.22em]"
-            style={{ color: CORAL }}
+            className="text-center uppercase leading-tight"
+            style={{
+              color: CORAL,
+              fontSize: cqw(9),
+              marginTop: cqw(6),
+              letterSpacing: "0.22em",
+              // Same trailing-step correction as the number. At 0.22em this is the
+              // larger of the two errors relative to the type size.
+              marginRight: "-0.22em",
+            }}
           >
             Life Score
             <br />
