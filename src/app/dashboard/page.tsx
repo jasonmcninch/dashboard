@@ -587,9 +587,9 @@ export default async function DashboardPage() {
         </section>
         {/* ── Reminders ── */}
         <section id="reminders" data-section className="mb-12">
-          <SectionTag icon={<BellRingIcon />}>Reminders</SectionTag>
+          <SectionTag icon={<BellRingIcon />}>Reminders &amp; Promptings</SectionTag>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-[auto_1fr]">
-            <ScoreBox pct={reminders.completedPct} caption="Reminders" />
+            <ScoreBox pct={reminders.completedPct} caption="Reminders &amp; Promptings" />
             <div className="rounded-2xl p-5" style={panel}>
               <RemindersPanel initial={reminders} />
             </div>

@@ -42,6 +42,22 @@ const ASK_PATTERNS: { pattern: RegExp; kind: ActionRequest["kind"] }[] = [
 ];
 
 /**
+ * Topics that surface a message regardless of how it's phrased.
+ *
+ * Distinct from ASK_PATTERNS above: those look for someone *asking* for something,
+ * whereas these fire on mere mention. A note that just says "here's the Vouch flow"
+ * isn't a request, but it's still something worth seeing.
+ *
+ * `\b` around each keeps them tight — `\bflow\b` matches "the flow" but not
+ * "workflow" or "cash flow statement", which would otherwise flood the feed.
+ */
+const TOPIC_PATTERNS: { pattern: RegExp; kind: ActionRequest["kind"] }[] = [
+  { pattern: /\bvouch\b/i, kind: "other" },
+  { pattern: /\bflows?\b/i, kind: "other" },
+  { pattern: /\bdesigns?\b/i, kind: "design" },
+];
+
+/**
  * Subject-line markers of automated mail that slips past header checks —
  * receipts, alerts, and the like. Matching any of these disqualifies a message.
  */
@@ -106,7 +122,12 @@ export function classifyRequests(
 
     const haystack = `${message.subject}. ${message.snippet}`;
 
-    const hit = ASK_PATTERNS.find((entry) => entry.pattern.test(haystack));
+    // An explicit ask wins, because its summary sentence is more useful. A topic
+    // mention is the fallback so mail about this work surfaces even when it isn't
+    // phrased as a request.
+    const hit =
+      ASK_PATTERNS.find((entry) => entry.pattern.test(haystack)) ??
+      TOPIC_PATTERNS.find((entry) => entry.pattern.test(haystack));
     if (!hit) continue;
 
     const subject = cleanSubject(message.subject);
