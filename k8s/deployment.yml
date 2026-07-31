@@ -1,3 +1,24 @@
+# Persistent storage for the checklists.
+#
+# Everything the dashboard records — wellness ticks and goals, the spiritual
+# checklist and topic, family rotation notes, diet scores, reminders, and Life Score
+# history — lives in JSON files under /data. Without this claim that directory is
+# part of the container filesystem, so every pod restart (including the one each
+# deploy triggers) would wipe the lot.
+#
+# microk8s-hostpath uses WaitForFirstConsumer, so this stays Pending until the
+# deployment below mounts it. That is expected, not a failure.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mcninch-data
+  namespace: jason
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -6,7 +27,15 @@ metadata:
   labels:
     app: hello-world
 spec:
+  # One replica, deliberately. The JSON store is a single writer against a
+  # ReadWriteOnce volume; a second pod would both fail to mount it and race on
+  # writes. Scaling out needs a real database first.
   replicas: 1
+  strategy:
+    # Recreate, not RollingUpdate: a rolling update briefly runs two pods, and the
+    # new one cannot attach a ReadWriteOnce volume the old one still holds. It would
+    # sit Pending until the rollout timed out.
+    type: Recreate
   selector:
     matchLabels:
       app: hello-world
@@ -21,14 +50,52 @@ spec:
         - name: hello-world
           image: ghcr.io/jasonmcninch/hello-world-app:latest
           ports:
-            - containerPort: 80
+            # 3000, matching `node server.js` from the standalone build. This said 80
+            # for the previous nginx image; the Service was hand-patched to 3000 on
+            # the cluster but this file never was, so applying it used to be a way to
+            # take the site down.
+            - containerPort: 3000
+          envFrom:
+            # AUTH_USERNAME, AUTH_PASSWORD_HASH, SESSION_SECRET, IMAP_USER,
+            # IMAP_APP_PASSWORD. Created out of band with kubectl — never in git.
+            - secretRef:
+                name: mcninch-auth
+          env:
+            # Points the JSON store at the mounted volume rather than ./.data inside
+            # the container.
+            - name: CHECKLIST_DATA_DIR
+              value: /data
+          volumeMounts:
+            - name: data
+              mountPath: /data
           resources:
             requests:
-              memory: "32Mi"
-              cpu: "10m"
-            limits:
-              memory: "64Mi"
+              memory: "192Mi"
               cpu: "50m"
+            limits:
+              # Raised from 64Mi. That ceiling was sized for nginx serving one static
+              # file; a Node process would be OOM-killed on startup.
+              memory: "512Mi"
+              cpu: "500m"
+          # Probe Next's own routing rather than just the process, so a pod that boots
+          # but can't serve is caught. `/` is the public landing page, so this needs
+          # no credentials.
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 25
+            periodSeconds: 20
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: mcninch-data
 ---
 apiVersion: v1
 kind: Service
@@ -43,4 +110,6 @@ spec:
     app: hello-world
   ports:
     - port: 80
-      targetPort: 80
+      # Matches the container's 3000. The live Service already had this; the manifest
+      # did not.
+      targetPort: 3000
