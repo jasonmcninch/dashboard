@@ -15,7 +15,11 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "mcninch.live",
+  // The browser tab, and the name a bookmark or a home-screen shortcut takes. Applies
+  // to the public landing page too, since that renders through this layout — which is
+  // intended: the wordmark is mañana everywhere now, so the tab agreeing with it is the
+  // point rather than a side effect.
+  title: "mañana",
   description: "Jason McNinch",
 };
 

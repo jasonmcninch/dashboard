@@ -7,7 +7,7 @@ import { getOverrides } from "@/lib/settings";
 
 const CORAL = "#E8624A";
 
-export const metadata = { title: "Settings — mcninch.live" };
+export const metadata = { title: "Settings — mañana" };
 
 /**
  * The back office.
