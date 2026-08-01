@@ -48,7 +48,12 @@ spec:
         - name: ghcr-secret
       containers:
         - name: hello-world
-          image: ghcr.io/jasonmcninch/hello-world-app:latest
+          # Matches the repo name: the workflow builds
+          # ghcr.io/${{ github.repository }}, so renaming the repo renames the image.
+          # Both have to move together — a rename with this left behind means every
+          # future deploy builds a new image, restarts the pod, reports success, and
+          # ships nothing, because the pod is still pulling the old tag.
+          image: ghcr.io/jasonmcninch/dashboard:latest
           ports:
             # 3000, matching `node server.js` from the standalone build. This said 80
             # for the previous nginx image; the Service was hand-patched to 3000 on
