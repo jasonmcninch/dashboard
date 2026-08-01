@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 102.42 97.84">
+  <!--
+    Browser tab icon. Next serves any src/app/icon.* as the favicon automatically.
+
+    Two differences from the component in components/manana-mark.tsx: the colour is the
+    literal accent rather than currentColor, since a favicon has no inheriting context to
+    take it from; and the artwork is nudged with a transform so it sits centred in the
+    square. The source paths only occupy the right-hand portion of their own viewBox,
+    which is fine inline next to text but leaves a favicon looking off-centre and small.
+  -->
+  <g transform="translate(-2 -8) scale(1.28) translate(-8 0)" fill="#E8624A">
+    <path d="M76.8,24.94h-23.66s-5.69-3.56-6.76-9.79h10.68s6.58.71,9.43,8.01v-8.01s10.32,1.13,10.32,9.79Z"/>
+    <path d="M77.11,33.6l6.44-5.37h-16.9v21.48h-8.54c-.14-12.56-10.35-22.7-22.95-22.7s-22.95,10.28-22.95,22.95h11.37c-3.18,3.61-3.01,8.96-3.01,8.96h13.1c3.55,8.09,11.62,13.74,21.02,13.74,12.68,0,22.95-10.28,22.95-22.95l-.02.13v-5.37s2.3.71,3.98-1.91c2.18-3.41-.92-6.09-.92-6.09l-3.58-2.86ZM71.3,33.57c-.76,0-1.38-.62-1.38-1.38s.62-1.38,1.38-1.38,1.38.62,1.38,1.38-.62,1.38-1.38,1.38Z"/>
+  </g>
+</svg>

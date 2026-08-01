@@ -1,4 +1,5 @@
 import { ThemeToggle } from "@/components/theme-toggle";
+import { MananaMark } from "@/components/manana-mark";
 import { DietPanel } from "@/components/diet-panel";
 import { LifeScoreModal } from "@/components/life-score-modal";
 import { ProgressRing } from "@/components/progress-ring";
@@ -282,7 +283,43 @@ function ScoreBox({
       : "flex flex-col items-center justify-center rounded-2xl px-6 py-6 sm:min-w-[9.5rem]"
   }${glow ? " score-glow" : ""}${href ? " neu-press cursor-pointer" : ""}`;
 
-  const body = (
+  // Finished: the mark alone, centred, in place of the ring, the number and the
+  // caption. At 100% the ring is a plain closed circle and the number is always the
+  // same three characters, so both say less plainly what the mark says.
+  //
+  // The visible text goes away but the accessible name must not: the caption and the
+  // figure move into a visually-hidden label, so a screen reader still hears which
+  // section this is and that it is complete.
+  const done = pct === 100;
+
+  const body = done ? (
+    <div className="relative flex flex-col items-center justify-center">
+      {/* A hidden copy of the unfinished layout, purely to reserve its height.
+          `invisible` is visibility:hidden, which still takes up space — unlike
+          `hidden`/display:none. Without it a completed box is shorter than its
+          neighbours and the grid rows stop lining up, which is exactly what happened on
+          the first attempt. Reserving the real thing beats hard-coding a pixel height
+          that would drift the moment the type or ring size changes. */}
+      <div className="invisible" aria-hidden>
+        <ProgressRing pct={100} size={dense ? 44 : 52} delay={0} />
+        <div className={dense ? "mt-2 text-xl font-bold" : "mt-3 text-2xl font-bold"}>
+          100%
+        </div>
+        <div
+          className={`text-center leading-snug ${dense ? "mt-0.5 text-[10px]" : "mt-1 text-[11px]"}`}
+        >
+          {caption}
+        </div>
+      </div>
+      <span
+        className="absolute inset-0 flex items-center justify-center"
+        style={{ color: CORAL }}
+      >
+        <MananaMark size={dense ? 44 : 52} />
+      </span>
+      <span className="sr-only">{caption}: complete</span>
+    </div>
+  ) : (
     <>
       <ProgressRing pct={pct} size={dense ? 44 : 52} delay={delay} />
       <div className={dense ? "mt-2 text-xl font-bold" : "mt-3 text-2xl font-bold"}>
@@ -492,8 +529,14 @@ export default async function DashboardPage({
         className="sticky top-0 z-50 flex items-center justify-between gap-2 px-4 py-5 sm:px-8"
         style={{ background: "var(--c-nav-grad)" }}
       >
-        <span className="text-sm font-bold tracking-widest" style={{ color: CORAL }}>
-          mcninch.live
+        {/* Mark plus wordmark, both coral. The mark carries currentColor, so it takes
+            the colour from this span rather than restating it. */}
+        <span
+          className="flex items-center gap-2 text-sm font-bold tracking-widest"
+          style={{ color: CORAL }}
+        >
+          <MananaMark size={22} />
+          mañana
         </span>
         <div className="flex items-center gap-1">
           <ThemeToggle />

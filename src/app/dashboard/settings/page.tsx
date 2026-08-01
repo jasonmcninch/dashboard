@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { SettingsForm } from "@/components/settings-form";
+import { MananaMark } from "@/components/manana-mark";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/session";
 import { getOverrides } from "@/lib/settings";
 
@@ -37,10 +38,11 @@ export default async function SettingsPage() {
       >
         <Link
           href="/dashboard"
-          className="text-sm font-bold tracking-widest transition-opacity hover:opacity-70"
+          className="flex items-center gap-2 text-sm font-bold tracking-widest transition-opacity hover:opacity-70"
           style={{ color: CORAL }}
         >
-          mcninch.live
+          <MananaMark size={22} />
+          mañana
         </Link>
         <div className="flex items-center gap-3">
           <span className="nav-avatar" title={session?.sub ?? undefined}>
