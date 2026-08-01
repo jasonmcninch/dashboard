@@ -16,7 +16,12 @@ import type { ActionRequest, ConnectionStatus } from "@/lib/data";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/session";
 import { getSpiritual } from "@/lib/spiritual";
 import { getWellness } from "@/lib/wellness";
+import { dayKey } from "@/lib/calendar";
 import { getLabels } from "@/lib/settings";
+import { DayBar } from "@/components/day-bar";
+import { DaySwipe } from "@/components/day-swipe";
+import { getDailyScore } from "@/lib/life-score";
+import { parseDayParam, toDayParam } from "@/lib/day-view";
 import { cookies } from "next/headers";
 import Link from "next/link";
 
@@ -376,7 +381,20 @@ function RequestRow({ request }: { request: ActionRequest }) {
   );
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const dayParam = (await searchParams).day;
+  // Anything malformed, in the future, or older than the window falls back to today —
+  // a hand-edited URL shouldn't be a broken page.
+  const viewing = parseDayParam(
+    Array.isArray(dayParam) ? dayParam[0] : dayParam,
+  );
+  const on = viewing ?? new Date();
+  const isToday = viewing === null;
+
   const session = await verifySessionToken(
     (await cookies()).get(SESSION_COOKIE)?.value,
   );
@@ -390,16 +408,31 @@ export default async function DashboardPage() {
   const [data, wellness, spiritual, diet, family, reminders, labels] =
     await Promise.all([
       source.load(),
-      getWellness(),
-      getSpiritual(),
-      getDiet(),
-      getFamily(),
+      getWellness(on),
+      getSpiritual(on),
+      getDiet(dayKey(on)),
+      getFamily(on),
       getReminders(),
       // Every renameable string on this page. Read per request, so returning from
       // the settings screen shows the new wording with no cache to invalidate.
       getLabels(),
     ]);
   const usingMockData = source.name === "mock";
+
+  /**
+   * Mail, Slack and the requests feed are read LIVE from the accounts — nothing about
+   * them is stored per day, so on a past date they describe right now, not that day.
+   * Rendering them under yesterday's heading would present today's inbox as history,
+   * which is the one thing this view must not do. Same for reminders, which carry a
+   * done flag and no date.
+   */
+  const liveOnly = !isToday;
+  const notRecorded = (
+    <p className="text-[12px]" style={{ color: "var(--c-text-dim)" }}>
+      Read live from the account — not recorded per day, so there is nothing to show for
+      a past date.
+    </p>
+  );
 
   // The diet slider already stores a percentage. Stays null when unrated so the
   // box shows "—" rather than implying a zero.
@@ -429,12 +462,19 @@ export default async function DashboardPage() {
   // Snapshot today's figure, then read back the weekly averages. Sequential because
   // the history has to include the value just written — the current week's average
   // would otherwise lag a page load behind.
-  await recordToday(lifeScore);
+  // Only today's visit records anything. Viewing history must not rewrite it — and the
+  // score computed from a past day's data is not what was recorded at the time anyway,
+  // since mail counts are live and can't be replayed.
+  if (isToday) await recordToday(lifeScore);
   const lifeHistory = await getLifeScoreHistory();
+  const recordedScore = isToday ? null : await getDailyScore(on);
 
   // The dial shows THIS WEEK's average rather than the instantaneous score, matching
   // its label. The live figure is still what gets recorded above.
-  const weekScore = lifeHistory.weeks[0]?.score ?? lifeScore;
+  // On a past day, show that day's recorded figure rather than this week's average.
+  const weekScore = isToday
+    ? (lifeHistory.weeks[0]?.score ?? lifeScore)
+    : recordedScore;
 
   return (
     // No data-theme here: it lives on the root element so one attribute themes the
@@ -509,13 +549,26 @@ export default async function DashboardPage() {
         </div>
       </nav>
 
+      {/* Listens on the document, renders nothing. */}
+      <DaySwipe viewing={toDayParam(on)} />
+
       <main className="mx-auto max-w-3xl px-6 pb-24">
+        {!isToday && <DayBar viewing={on} />}
         {usingMockData && (
           <p className="mb-6 text-sm" style={{ color: "var(--c-text-dim)" }}>
             Showing placeholder data — no accounts are connected yet.
           </p>
         )}
 
+        {/* pointer-events off for a past day: every control on this page writes to
+            "now", so a tap here would silently edit today while yesterday is displayed.
+            A wrapper is blunt but it cannot be bypassed, where a readOnly prop threaded
+            through eight components can be forgotten in one of them. Scrolling and the
+            day navigation above are unaffected. */}
+        <div
+          style={isToday ? undefined : { pointerEvents: "none" }}
+          aria-disabled={isToday ? undefined : true}
+        >
         <PlanToast
           week={spiritual.week}
           topic={spiritual.topic}
@@ -528,7 +581,11 @@ export default async function DashboardPage() {
             suggests. Negative margin here rather than less padding on <main>, which
             would move every section up, not just the dial. */}
         <div className="-mt-5">
-          <LifeScoreModal pct={weekScore} weeks={lifeHistory.weeks} />
+          <LifeScoreModal
+            pct={weekScore}
+            weeks={lifeHistory.weeks}
+            dialSecondLine={isToday ? undefined : "That Day"}
+          />
         </div>
 
         {/* ── Summary ──
@@ -540,12 +597,15 @@ export default async function DashboardPage() {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {/* Staggered left to right, starting after the dial's sweep has begun so
                 the eye follows the page down rather than everything moving at once. */}
-            <ScoreBox dense glowWhenIncomplete delay={0.5} pct={family.completedPct} caption={labels["summary.family"]} href="#family" />
-            <ScoreBox dense glowWhenIncomplete delay={0.58} pct={spiritual.completedPct} caption={labels["summary.spiritual"]} href="#spiritual" />
-            <ScoreBox dense glowWhenIncomplete delay={0.66} pct={wellness.completedPct} caption={labels["summary.wellness"]} href="#wellness" />
-            <ScoreBox dense glowWhenIncomplete delay={0.74} pct={dietPct} caption={labels["summary.diet"]} href="#diet" />
-            <ScoreBox dense glowWhenIncomplete delay={0.82} pct={mailCleanPct(data.mail)} caption={labels["summary.email"]} href="#email" />
-            <ScoreBox dense glowWhenIncomplete delay={0.9} pct={reminders.completedPct} caption={labels["summary.reminders"]} href="#reminders" />
+            {/* glowWhenIncomplete={isToday}: the glow means "this still needs you". On a
+                past day nothing does — it is a record, not a to-do list — and for the
+                live-only boxes a dash means "unknowable", not "unfinished". */}
+            <ScoreBox dense glowWhenIncomplete={isToday} delay={0.5} pct={family.completedPct} caption={labels["summary.family"]} href="#family" />
+            <ScoreBox dense glowWhenIncomplete={isToday} delay={0.58} pct={spiritual.completedPct} caption={labels["summary.spiritual"]} href="#spiritual" />
+            <ScoreBox dense glowWhenIncomplete={isToday} delay={0.66} pct={wellness.completedPct} caption={labels["summary.wellness"]} href="#wellness" />
+            <ScoreBox dense glowWhenIncomplete={isToday} delay={0.74} pct={dietPct} caption={labels["summary.diet"]} href="#diet" />
+            <ScoreBox dense glowWhenIncomplete={isToday} delay={0.82} pct={liveOnly ? null : mailCleanPct(data.mail)} caption={labels["summary.email"]} href="#email" />
+            <ScoreBox dense glowWhenIncomplete={isToday} delay={0.9} pct={liveOnly ? null : reminders.completedPct} caption={labels["summary.reminders"]} href="#reminders" />
           </div>
         </section>
 
@@ -561,7 +621,9 @@ export default async function DashboardPage() {
         <section id="requests" data-section className="mb-12">
           <SectionTag icon={<ServiceBellIcon />}>{labels["section.requests"]}</SectionTag>
           <div className="space-y-2 rounded-2xl p-5" style={panel}>
-            {data.requests.length === 0 ? (
+            {liveOnly ? (
+              notRecorded
+            ) : data.requests.length === 0 ? (
               <p className="py-6 text-center text-[11px]" style={{ color: "var(--c-text-faint)" }}>
                 Nothing waiting on you.
               </p>
@@ -615,14 +677,14 @@ export default async function DashboardPage() {
           <SectionTag icon={<EnvelopeIcon />}>{labels["section.email"]}</SectionTag>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-[auto_1fr]">
             <ScoreBox
-              pct={mailCleanPct(data.mail)}
+              pct={liveOnly ? null : mailCleanPct(data.mail)}
               caption={labels["panel.email"]}
             />
             <div className="grid grid-cols-2 gap-3">
-              <StatCard value={data.mail.unread} label={labels["mail.unread"]} href={data.mail.links.unreadInbox} />
-              <StatCard value={data.mail.inboxTotal} label={labels["mail.inbox"]} />
-              <StatCard value={data.mail.workUnread} label={labels["mail.work"]} href={data.mail.links.unreadWork} />
-              <StatCard value={data.mail.trashed} label={labels["mail.trash"]} href={data.mail.links.trash} />
+              <StatCard value={liveOnly ? null : data.mail.unread} label={labels["mail.unread"]} href={liveOnly ? null : data.mail.links.unreadInbox} />
+              <StatCard value={liveOnly ? null : data.mail.inboxTotal} label={labels["mail.inbox"]} />
+              <StatCard value={liveOnly ? null : data.mail.workUnread} label={labels["mail.work"]} href={liveOnly ? null : data.mail.links.unreadWork} />
+              <StatCard value={liveOnly ? null : data.mail.trashed} label={labels["mail.trash"]} href={liveOnly ? null : data.mail.links.trash} />
             </div>
           </div>
         </section>
@@ -630,9 +692,9 @@ export default async function DashboardPage() {
         <section id="slack" data-section className="mb-12">
           <SectionTag>{labels["section.slack"]}</SectionTag>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <StatCard value={data.slack.unread} label={labels["slack.unread"]} />
-            <StatCard value={data.slack.received} label={labels["slack.received"]} />
-            <StatCard value={data.slack.awaiting} label={labels["slack.awaiting"]} />
+            <StatCard value={liveOnly ? null : data.slack.unread} label={labels["slack.unread"]} />
+            <StatCard value={liveOnly ? null : data.slack.received} label={labels["slack.received"]} />
+            <StatCard value={liveOnly ? null : data.slack.awaiting} label={labels["slack.awaiting"]} />
           </div>
         </section>
         {/* ── Reminders ── */}
@@ -641,7 +703,17 @@ export default async function DashboardPage() {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-[auto_1fr]">
             <ScoreBox pct={reminders.completedPct} caption={labels["panel.reminders"]} />
             <div className="rounded-2xl p-5" style={panel}>
-              <RemindersPanel initial={reminders} />
+              {isToday ? (
+                <RemindersPanel initial={reminders} />
+              ) : (
+                /* Reminders are the one section with no history: they carry a done flag
+                   and no date, so there is nothing to replay. Saying so is the honest
+                   option — rendering the current list under a past date would present
+                   today's state as that day's. */
+                <p className="text-[12px]" style={{ color: "var(--c-text-dim)" }}>
+                  Not recorded per day — reminders have no history to show.
+                </p>
+              )}
             </div>
           </div>
         </section>
@@ -655,6 +727,7 @@ export default async function DashboardPage() {
             ))}
           </div>
         </section>
+        </div>
       </main>
     </div>
   );

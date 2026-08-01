@@ -13,16 +13,23 @@ export * from "./schedule";
 export { getGoals, getHistory, setDay, setGoal } from "./store";
 export { GOAL_MAX_LENGTH } from "./limits";
 
-/** Builds this week's checklist by overlaying stored completions on the plan. */
-export async function getWellness(): Promise<Wellness> {
-  const week = isoWeekKey();
+/**
+ * Builds a week's checklist by overlaying stored completions on the plan.
+ *
+ * Takes a date so a past day can be replayed. Nothing extra had to be recorded for
+ * that: completions are stored per ISO week and per weekday, which IS a per-day record
+ * — `elapsedDays(on)` then scores the week as it stood on that date rather than as it
+ * stands now.
+ */
+export async function getWellness(on = new Date()): Promise<Wellness> {
+  const week = isoWeekKey(on);
   const [stored, goals, labels] = await Promise.all([
     getWeek(week),
     getGoals(),
     getLabels(),
   ]);
-  const today = todayKey();
-  const elapsed = new Set(elapsedDays());
+  const today = todayKey(on);
+  const elapsed = new Set(elapsedDays(on));
 
   const days = SCHEDULE.map((entry) => ({
     day: entry.day,

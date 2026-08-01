@@ -43,12 +43,12 @@ export function periodKey(cadence: Cadence, date = new Date()): string {
   }
 }
 
-export async function getFamily(): Promise<Family> {
+export async function getFamily(on = new Date()): Promise<Family> {
   const [file, labels] = await Promise.all([store.read(), getLabels()]);
 
   const rows: FamilyRow[] = FAMILY_ITEMS.map((item) => {
     const cadence = CADENCE[item];
-    const record = file.items[item]?.[periodKey(cadence)] ?? {};
+    const record = file.items[item]?.[periodKey(cadence, on)] ?? {};
     return {
       item,
       label: labels[`family.${item}`],

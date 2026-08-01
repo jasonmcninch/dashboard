@@ -153,7 +153,18 @@ function annulusPath(cx: number, cy: number, outer: number, inner: number): stri
  *
  * Rendered on the server — it's a readout with no interaction.
  */
-export function LifeScore({ pct }: { pct: number | null }) {
+export function LifeScore({
+  pct,
+  secondLine = "This Week",
+}: {
+  pct: number | null;
+  /**
+   * The caption's second line. Not a customisation hook — it exists because the dial
+   * shows a weekly average on today and a single recorded day when viewing history, and
+   * "THIS WEEK" under a single day's figure is simply false.
+   */
+  secondLine?: string;
+}) {
   const litTicks = pct === null ? 0 : Math.round((pct / 100) * TICK_COUNT);
 
   const ticks = Array.from({ length: TICK_COUNT }, (_, index) => {
@@ -451,7 +462,7 @@ export function LifeScore({ pct }: { pct: number | null }) {
           >
             Life Score
             <br />
-            This Week
+            {secondLine}
           </span>
         </div>
       </div>

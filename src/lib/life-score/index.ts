@@ -63,6 +63,17 @@ export async function recordToday(score: number | null): Promise<void> {
   });
 }
 
+/**
+ * One day's recorded score, or null if nothing was recorded that day.
+ *
+ * Separate from getHistory() because a past-day view needs the figure as it was
+ * recorded, not a weekly average that includes days after it.
+ */
+export async function getDailyScore(on: Date): Promise<number | null> {
+  const file = await store.read();
+  return file.daily[dayKey(on)] ?? null;
+}
+
 /** Weekly averages, newest first, covering `weekCount` weeks back from this one. */
 export async function getHistory(weekCount = 6): Promise<LifeScoreHistory> {
   const file = await store.read();

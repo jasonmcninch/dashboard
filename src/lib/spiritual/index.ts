@@ -1,4 +1,4 @@
-import { isoWeekKey } from "../calendar";
+import { dayKey, isoWeekKey } from "../calendar";
 import { getDay, getTopic } from "./store";
 import { ITEMS, type ReadingItemKey, type Spiritual, type SpiritualRow } from "./types";
 import { getLabels } from "../settings";
@@ -12,10 +12,10 @@ export * from "./types";
 export { dayKey, getHistory, getTopic, setDone, setReading, setTopic } from "./store";
 export type { SpiritualDay } from "./store";
 
-export async function getSpiritual(): Promise<Spiritual> {
+export async function getSpiritual(on = new Date()): Promise<Spiritual> {
   const [state, topic, labels] = await Promise.all([
-    getDay(),
-    getTopic(),
+    getDay(dayKey(on)),
+    getTopic(isoWeekKey(on)),
     getLabels(),
   ]);
 
@@ -35,7 +35,7 @@ export async function getSpiritual(): Promise<Spiritual> {
     day: state.day,
     rows,
     completedPct: rows.length ? Math.round((completed / rows.length) * 100) : 0,
-    week: isoWeekKey(),
+    week: isoWeekKey(on),
     topic,
   };
 }
