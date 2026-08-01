@@ -380,6 +380,10 @@ export default async function DashboardPage() {
   const session = await verifySessionToken(
     (await cookies()).get(SESSION_COOKIE)?.value,
   );
+  // First letter of the username, for the nav avatar. Falls back to "?" rather than
+  // rendering an empty circle if a session somehow carries no subject.
+  const initial = session?.sub?.trim().charAt(0).toUpperCase() || "?";
+
   const source = getDashboardSource();
   // Wellness is local state, so it loads independently of the integrations —
   // a Gmail outage shouldn't take the checklist down with it.
@@ -445,7 +449,7 @@ export default async function DashboardPage() {
     >
       {/* Nav */}
       <nav
-        className="sticky top-0 z-50 flex items-center justify-between px-8 py-5"
+        className="sticky top-0 z-50 flex items-center justify-between gap-2 px-4 py-5 sm:px-8"
         style={{ background: "var(--c-nav-grad)" }}
       >
         <span className="text-sm font-bold tracking-widest" style={{ color: CORAL }}>
@@ -475,19 +479,31 @@ export default async function DashboardPage() {
               <circle cx="16" cy="18" r="2.4" />
             </SectionIcon>
           </Link>
-          {/* The two icons sit tight together — each already carries 36px of tap
-              target — then a real gap before the text. */}
-          <span className="ml-2 text-[11px]" style={{ color: "var(--c-text-dim)" }}>
-            {session?.sub}
+          {/* An initial rather than the full name. The name was the widest thing in
+              this row and the only part of it that grows with the account it belongs to,
+              which is what tipped the nav over on a narrow phone. The full name is
+              still available on hover and to a screen reader. */}
+          <span className="nav-avatar ml-1" title={session?.sub ?? undefined}>
+            <span aria-hidden>{initial}</span>
+            <span className="sr-only">Signed in as {session?.sub ?? "unknown"}</span>
           </span>
-          <span className="w-1" aria-hidden />
-          <form action="/api/auth/logout" method="POST">
+          {/* Still a real form POST, so signing out works without JavaScript and can't
+              be triggered by a stray GET. Only the label became a glyph. */}
+          <form action="/api/auth/logout" method="POST" className="shrink-0">
             <button
               type="submit"
-              className="rounded-full px-4 py-1.5 text-[11px] transition-opacity hover:opacity-70"
-              style={{ border: "1px solid var(--c-border-dim)", color: "var(--c-text-dim)" }}
+              className="nav-icon cursor-pointer border-0 bg-transparent"
+              aria-label="Sign out"
+              title="Sign out"
             >
-              Sign out
+              <SectionIcon>
+                {/* A doorway with an arrow leaving through it. The frame is drawn open
+                    on the side the arrow exits, so the two read as one action rather
+                    than a box beside an arrow. */}
+                <path d="M9.5 20.5H5.5a1.8 1.8 0 0 1-1.8-1.8V5.3a1.8 1.8 0 0 1 1.8-1.8h4" />
+                <path d="M15.8 16.4 20.2 12l-4.4-4.4" />
+                <path d="M20.2 12H9.6" />
+              </SectionIcon>
             </button>
           </form>
         </div>
@@ -506,7 +522,14 @@ export default async function DashboardPage() {
           reminders={reminders}
         />
 
-        <LifeScoreModal pct={weekScore} weeks={lifeHistory.weeks} />
+        {/* Pulled up 20px. The dial's SVG carries ~40 units of transparent margin
+            inside its own box — the ring is 300 wide in a 380 box, room the blurred
+            outer edge needs — so the gap to the nav reads far larger than the markup
+            suggests. Negative margin here rather than less padding on <main>, which
+            would move every section up, not just the dial. */}
+        <div className="-mt-5">
+          <LifeScoreModal pct={weekScore} weeks={lifeHistory.weeks} />
+        </div>
 
         {/* ── Summary ──
             Every section's headline number in one row, so the whole day reads at a

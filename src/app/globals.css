@@ -329,6 +329,28 @@ input::placeholder {
   outline-offset: 3px;
 }
 
+/* The signed-in avatar: an initial in a ring.
+   Fixed size and shrink-0 so it can never be the thing that widens the nav — which is
+   the whole reason it replaced the full username. */
+.nav-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 999px;
+  /* A coral-tinted ring rather than the neutral --c-border-dim, which at 7% white was
+     invisible on black and left the initial floating with no chip around it. */
+  border: 1px solid rgba(232, 98, 74, 0.38);
+  background: var(--c-surface);
+  color: #e8624a;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  user-select: none;
+}
+
 /* ── Settings link ─────────────────────────────────────────────────────────── */
 .nav-icon {
   display: flex;
@@ -363,6 +385,19 @@ input::placeholder {
    Tapping a summary box jumps to its section. */
 html {
   scroll-behavior: smooth;
+}
+
+/* Nothing on this dashboard is meant to scroll sideways, so make that structural
+   rather than something every future layout change has to re-earn. This is a GUARD, not
+   a fix — an element that overflows is still a bug to find and correct; this only stops
+   it becoming a scrollbar in the meantime.
+
+   `clip`, not `hidden`: `overflow-x: hidden` forces the block axis into a scroll
+   container too, which would break the sticky nav. `clip` establishes no scroll
+   container at all. */
+html,
+body {
+  overflow-x: clip;
 }
 
 /* Sections would otherwise land underneath the sticky nav. */

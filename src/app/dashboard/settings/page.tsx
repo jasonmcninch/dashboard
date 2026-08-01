@@ -32,7 +32,7 @@ export default async function SettingsPage() {
       }}
     >
       <nav
-        className="sticky top-0 z-50 flex items-center justify-between px-8 py-5"
+        className="sticky top-0 z-50 flex items-center justify-between gap-2 px-4 py-5 sm:px-8"
         style={{ background: "var(--c-nav-grad)" }}
       >
         <Link
@@ -43,8 +43,11 @@ export default async function SettingsPage() {
           mcninch.live
         </Link>
         <div className="flex items-center gap-3">
-          <span className="text-[11px]" style={{ color: "var(--c-text-dim)" }}>
-            {session?.sub}
+          <span className="nav-avatar" title={session?.sub ?? undefined}>
+            <span aria-hidden>
+              {session?.sub?.trim().charAt(0).toUpperCase() || "?"}
+            </span>
+            <span className="sr-only">Signed in as {session?.sub ?? "unknown"}</span>
           </span>
           <Link
             href="/dashboard"

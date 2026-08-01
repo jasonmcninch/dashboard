@@ -253,8 +253,14 @@ export function LifeScore({ pct }: { pct: number | null }) {
             {/* Keeps the edge strokes inside the ring. A stroke straddles its path, so
                 without this the outer highlight would spill onto the page and the
                 inner one into the hole, blurring the silhouette. */}
+            {/* clipRule, NOT fillRule. Inside a clipPath the winding rule comes from
+                `clip-rule`; `fill-rule` is ignored there. With the default nonzero rule
+                these two same-wound circles resolve to a SOLID disc, so the hole wasn't
+                being clipped at all and the inner edge's blur spilled across the middle
+                of the dial. Invisible only because the readout disc happens to paint
+                over it. */}
             <clipPath id="ls-clip">
-              <path d={ring} fillRule="evenodd" />
+              <path d={ring} clipRule="evenodd" />
             </clipPath>
 
             {/* The disc behind the readout. Darker at the upper-left, easing lighter
