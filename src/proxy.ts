@@ -37,6 +37,13 @@ export const config = {
   // fire; the handler returns next() for signed-out visitors, so it stays
   // reachable.
   matcher: [
-    "/((?!$|api/auth|_next/static|_next/image|favicon.ico|mountains.avif|.*\\.svg).*)",
+    // Icons are excluded by EXTENSION, not by name. `.svg` was already here, which is
+    // why /icon.svg worked and /apple-icon.png did not — it was gated, so the request
+    // 307'd to /login and iOS could never fetch a home-screen icon. The OS fetches that
+    // without the session cookie in any case, so gating it can only ever fail.
+    //
+    // Safe to widen: nothing user-specific is served with an image extension. Every
+    // route that reads stored data is a page or an /api handler, both still gated.
+    "/((?!$|api/auth|_next/static|_next/image|mountains.avif|.*\\.(?:svg|png|ico|avif|jpg|jpeg|webp)).*)",
   ],
 };
