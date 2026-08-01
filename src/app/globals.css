@@ -162,15 +162,18 @@
   --ls-hi-gain: 1;
   --ls-lo-ink: #000000;
   --ls-lo-gain: 1;
-  /* The disc behind the readout, raised out of the page. Brightest at the upper-left
-     where the crown faces the light, falling below the page value at the lower-right
-     as it curves away. */
-  --ls-disc-1: #121212;
-  --ls-disc-2: #0c0c0c;
-  --ls-disc-3: #080808;
-  /* Weaker shadow, stronger highlight than the ring. See discStop(). */
-  --ls-dlo-gain: 0.42;
-  --ls-dhi-gain: 1.3;
+  /* No disc in dark mode. The face matches the page and both rim gains are zero, so
+     the disc still renders and contributes nothing — the area inside the ring reads as
+     flat page again.
+     Switching it off here rather than in the component keeps the markup identical
+     across themes, which is what lets the dial stay a server component. On a #0a0a0a
+     page a shallow dish has almost no room to describe itself anyway: black is ten
+     steps away, so the shadow side clips before the form registers. */
+  --ls-disc-1: #0a0a0a;
+  --ls-disc-2: #0a0a0a;
+  --ls-disc-3: #0a0a0a;
+  --ls-dlo-gain: 0;
+  --ls-dhi-gain: 0;
   --ls-tick-lit: rgba(255, 255, 255, 0.85);
   --ls-tick-dim: rgba(255, 255, 255, 0.06);
   --ls-bead: #ededed;
@@ -229,12 +232,15 @@
   --ls-hi-gain: 2.4;
   --ls-lo-ink: #000000;
   --ls-lo-gain: 0.26;
-  /* Same read on a light page: the lit crown goes above the page colour, the far
-     side settles below it. The swing is smaller than in dark mode because a light
-     surface shows a shallow shadow far more readily. */
-  --ls-disc-1: #fbfbfd;
-  --ls-disc-2: #f2f2f6;
-  --ls-disc-3: #e6e6ec;
+  /* A dish sunk into a light page: darkest where the floor turns away from the light
+     at the upper-left, easing back toward the page colour at the lower-right. This is
+     where the effect earns its keep — a light surface shows a shallow shadow readily,
+     which is exactly what near-black cannot do. */
+  --ls-disc-1: #e7e7ee;
+  --ls-disc-2: #eeeef3;
+  --ls-disc-3: #f4f4f7;
+  --ls-dlo-gain: 0.30;
+  --ls-dhi-gain: 2.2;
   --ls-dlo-gain: 0.30;
   --ls-dhi-gain: 2.2;
   --ls-tick-lit: rgba(0, 0, 0, 0.72);

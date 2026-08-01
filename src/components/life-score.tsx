@@ -257,28 +257,32 @@ export function LifeScore({ pct }: { pct: number | null }) {
               <path d={ring} fillRule="evenodd" />
             </clipPath>
 
-            {/* The disc behind the readout. Lightest at the upper-left, falling away
-                toward the lower-right — a crown turned toward the light, the same sense
-                as the ring's own face. */}
+            {/* The disc behind the readout. Darker at the upper-left, easing lighter
+                toward the lower-right — the floor of a dish, which tilts away from the
+                light on the side nearest it. Flat page colour in dark mode. */}
             <linearGradient id="ls-disc" x1="0" y1="0" x2="1" y2="1">
               <stop offset="0" style={{ stopColor: "var(--ls-disc-1)" }} />
               <stop offset="0.55" style={{ stopColor: "var(--ls-disc-2)" }} />
               <stop offset="1" style={{ stopColor: "var(--ls-disc-3)" }} />
             </linearGradient>
 
-            {/* The ring's two ramps on the disc's own gains, running in the SAME
-                direction as the ring's outer edge: highlight to the upper-left, shadow
-                to the lower-right. That is what makes the disc read as rising out of
-                the dial rather than sunk into it — the direction of these two axes is
-                the entire difference, and reversing them is all it took to invert the
-                form. The stops never change. */}
-            <linearGradient id="ls-hi-disc" x1="-0.15" y1="-0.15" x2="1.1" y2="1.1">
+            {/* The ring's two ramps on the disc's own gains, run in the OPPOSITE
+                direction to the ring's outer edge: shadow to the upper-left, highlight
+                to the lower-right. That inversion is what makes the disc read as sunk
+                into the dial rather than rising out of it — the direction of these two
+                axes is the entire difference, and the stops never change.
+
+                In dark mode the disc is switched off entirely: its gains go to zero and
+                its face matches the page, so this renders and contributes nothing. That
+                keeps the markup identical in both themes, which is the same reason the
+                whole dial is driven by custom properties. */}
+            <linearGradient id="ls-hi-disc" x1="1.1" y1="1.1" x2="-0.15" y2="-0.15">
               {HIGHLIGHT_RAMP.map(([offset, alpha]) => (
                 <stop key={offset} offset={offset} style={discStop("hi", alpha)} />
               ))}
             </linearGradient>
 
-            <linearGradient id="ls-lo-disc" x1="-0.15" y1="-0.15" x2="1.1" y2="1.1">
+            <linearGradient id="ls-lo-disc" x1="1.1" y1="1.1" x2="-0.15" y2="-0.15">
               {SHADOW_RAMP.map(([offset, alpha]) => (
                 <stop key={offset} offset={offset} style={discStop("lo", alpha)} />
               ))}
@@ -347,13 +351,14 @@ export function LifeScore({ pct }: { pct: number | null }) {
             />
           </g>
 
-          {/* The disc the readout sits on: filled, and raised out of the page.
-              Exactly RING_INNER, so it meets the ring's inner wall with no gap. */}
+          {/* The disc the readout sits on: in light mode a filled dish pressed into
+              the page, exactly RING_INNER so it meets the ring's inner wall with no
+              gap. Invisible in dark mode — see the tokens. */}
           <circle cx={CENTER} cy={CENTER} r={RING_INNER} fill="url(#ls-disc)" />
           <g clipPath="url(#ls-disc-clip)" filter="url(#ls-disc-soft)">
-            {/* Highlight on the upper-left, shadow on the lower-right — a surface
-                bulging toward the light. Shadow drawn first so the highlight sits over
-                it where the two overlap. */}
+            {/* Shadow on the upper-left inner wall, highlight on the lower-right — a
+                surface curving away from the light where it is nearest it. Shadow drawn
+                first so the highlight sits over it where the two overlap. */}
             <circle
               cx={CENTER}
               cy={CENTER}
